@@ -56,7 +56,7 @@ PARAM = dict(
     plug_gap=3.0,                   # 문 단열 플러그 둘레 틈
     rebate=12.0,                    # 양문 맞닿는 턱 너비
     # 문
-    door_h=500.0,                   # 문 높이(천판 아래에서 아래로)
+    door_h=550.0,                   # 문 높이(천판 아래에서 아래로)
     t_door=18.0,                    # 문 겉판 두께
     hinges=2,                       # 문 한 짝당 경첩 수
     mag_n=1,                        # 문 한 짝당 자석 캐치 수(1: 위, 2: 위·아래)
@@ -68,8 +68,10 @@ PARAM = dict(
     vent_w=10.0, vent_pitch=30.0,   # 통풍 슬롯 폭·간격
     # 온도조절기·전원
     ctl_side="L",                   # 온도조절기·리셉터클 쪽 L/R
-    thermo_w=160.0, thermo_h=80.0,  # 온도조절기 홀(최대)
-    thermo_x=60.0,                  # 옆판 바깥 → 홀 가장자리
+    thermo_w=152.0, thermo_h=72.0,  # 온습도 조절기 몸체 타공
+    bezel_w=160.0, bezel_h=80.0,    # 조절기 앞 테두리(XM-18 160×80)
+    ctl_depth=89.0,                 # 조절기 깊이(테두리 포함)
+    thermo_x=60.0,                  # 옆판 바깥 → 앞 테두리 가장자리
     recp_w=32.0, recp_h=22.0,       # 전원 리셉터클(IEC 인렛, 수평 배치) 몸체 타공
     recp_pitch=40.0, recp_hole=3.2, # 나사 구멍 좌우 간격·지름
     recp_x=60.0,                    # 옆판 바깥 → 타공 가장자리(뒤에서 볼 때 같은 쪽)
@@ -189,7 +191,8 @@ def derive():
     d["open_h"] = d["cz1"] - d["rail1"]                    # 문 열린 높이(문틀 띠 사이)
     left = p["ctl_side"] != "R"
     tw, th = p["thermo_w"], p["thermo_h"]
-    tx = (p["thermo_x"] + tw / 2) if left else (W - p["thermo_x"] - tw / 2)
+    bw = max(p["bezel_w"], tw)
+    tx = (p["thermo_x"] + bw / 2) if left else (W - p["thermo_x"] - bw / 2)
     d["thermo"] = (tx, (d["cz0"] + d["zs0"]) / 2, tw, th)
     rx = (p["recp_x"] + p["recp_w"] / 2) if left else (W - p["recp_x"] - p["recp_w"] / 2)
     d["recp"] = (rx, (d["cz0"] + d["zs0"]) / 2, p["recp_w"], p["recp_h"])
@@ -234,7 +237,7 @@ def build():
            bom=("지판", "pine", W, D, t, "사개"), dev=notched_board(W, D, bn, t, True)))
     for nm, x0 in (("옆판(좌)", 0), ("옆판(우)", W - t)):
         A(_box(nm, x0, x0 + t, 0, D, f, H, "pine", keys={"H", "D", "t", "pin_pitch", "foot_h"}, tags={"shell"},
-               bom=("옆판", "pine", side_len, D, t, "사개, 들쇠"), dev=notched_board(side_len, D, bn, t, False)))
+               bom=("옆판", "pine", side_len, D, t, "사개"), dev=notched_board(side_len, D, bn, t, False)))
     rx, rz, rw, rh = d["recp"]
     A(_box("뒷판", t, W - t, yb, D, zb1, zt1, "pine", keys={"W", "H", "t", "recp_w", "recp_h", "recp_x", "ctl_side"},
            tags={"shell", "back"}, holes=[("recp", rx, rz, rw, rh)],
@@ -294,6 +297,21 @@ def build():
            bom=("단열재 아래 앞", "ins", W - 2 * t - 2 * s, lz1 - lz0, ti, "온도조절기 자리 따냄")))
     A(_box("속판(아래 앞)", t + s, W - t - s, y0i - tl, y0i, lz0, lz1, "cedar", keys={"t_in"}, tags={"lining", "lowfront"},
            bom=("속판 아래 앞", "cedar", W - 2 * t - 2 * s, lz1 - lz0, tl, "온도조절기 자리 따냄")))
+
+    # 조절기(테두리 + 몸체), 타공은 3D용으로 단열재·속판에도
+    tx, tz, tw, th = d["thermo"]
+    bw, bh = max(p["bezel_w"], tw), max(p["bezel_h"], th)
+    A(_box("온습도 조절기 테두리", tx - bw / 2, tx + bw / 2, -10, 0, tz - bh / 2, tz + bh / 2, "steel",
+           tags={"ctl"}, keys={"bezel_w", "bezel_h", "thermo_x", "ctl_side"}))
+    A(_box("온습도 조절기", tx - tw / 2, tx + tw / 2, 0, p["ctl_depth"] - 10, tz - th / 2, tz + th / 2, "steel",
+           tags={"ctl"}, keys={"thermo_w", "thermo_h", "ctl_depth", "ctl_side"}))
+    for q in parts:
+        if "lowfront" in q["tags"] or q["name"] == "아래 앞판":
+            q["holes3d"] = [("x", tx, tz, tw, th)]
+        if q["name"] in ("단열재(뒤)", "속판(뒤)"):
+            q["holes3d"] = [("x", rx, rz, 40.0, 50.0)]
+        if q["name"] == "뒷판":
+            q["holes3d"] = [("x", rx, rz, rw, rh)]
 
     # --- 가스켓(선택): 문틀 띠 앞면, 문 겉판 뒷면에 눌림
     if gasket_on():
@@ -423,6 +441,13 @@ def build():
                keys=rk | {"r3_cap_w", "r3_cap_h"}, tags={"rack"}, round_top=True,
                bom=("줌 받침", "ply", L - p["rack_back"] + 5, cw, chh, f"윗면 R{p['rack_r']:g}")))
         d["supports"] = [(0.0, rt)]
+
+    # --- 원목 손잡이(3D·평단면용)
+    zc_h = (dz0 + dz1) / 2
+    for sgn, tg in ((-1, "doorL"), (1, "doorR")):
+        xc = xm + sgn * 40
+        A(_box("원목 손잡이", xc - 6, xc + 6, -22, 0, zc_h - 50, zc_h + 50, "ply", tags={"door", tg, "handle"},
+               keys={"door_h"}))
 
     # --- 철물(정면 표시용)
     hw = []
@@ -629,17 +654,14 @@ def draw_front(ax, parts, d, opened):
         for q in parts:
             if "back" in q["tags"]:
                 draw_holes(ax, q, ls=":", fc="none")
-        for _, x, zc in d["hardware"]:
-            ax.add_patch(Rectangle((x - 22, zc - 40), 44, 80, fc=MAT["steel"][1], ec="k", lw=0.3, zorder=5, alpha=0.9))
+        for _, x, zc in d["hardware"]:          # 맞경첩: 문 옆면에 묻히고 축만 보임
+            xg = x + (p["gap"] / 2 if x < d["xm"] else -p["gap"] / 2)
+            ax.add_patch(Rectangle((xg - 3, zc - 32), 6, 64, fc="#8a7a5a", ec="k", lw=0.3, zorder=5))
         xm = d["xm"]
         dz0, dz1 = d["door_z"]
         zc = (dz0 + dz1) / 2
         for sgn in (-1, 1):
             ax.add_patch(Rectangle((xm + sgn * 40 - 6, zc - 50), 12, 100, fc="#6b4b2a", ec="k", lw=0.3, zorder=5))
-        W, H = p["W"], p["H"]
-        c = 50
-        for (x, z, sx, sz) in ((0, H, 1, -1), (W, H, -1, -1), (0, p["foot_h"], 1, 1), (W, p["foot_h"], -1, 1)):
-            ax.add_patch(Polygon([(x, z), (x + sx * c, z), (x, z + sz * c)], fc=MAT["steel"][1], ec="k", lw=0.3, zorder=5))
 
 
 def draw_bows(ax, d, view, n_all=True):
@@ -750,7 +772,9 @@ def sheet_assembly(pdf, parts, d):
     dim(a1, (W, 0), (W, dz0), -6, f"{dz0:.0f}")
     dim(a1, (W, dz0), (W, dz1), -6, f"문 {dz1 - dz0:.0f}")
     tx, tz, tw, th = d["thermo"]
-    dim(a1, (tx - tw / 2, tz - th / 2), (tx + tw / 2, tz - th / 2), -3, f"{tw:g}×{th:g}", fs=5)
+    bw, bh = p["bezel_w"], p["bezel_h"]
+    a1.add_patch(Rectangle((tx - bw / 2, tz - bh / 2), bw, bh, fill=False, ec="k", lw=0.5, ls="--", zorder=7))
+    dim(a1, (tx - bw / 2, tz - bh / 2), (tx + bw / 2, tz - bh / 2), -3, f"타공 {tw:g}×{th:g} (테두리 {bw:g}×{bh:g})", fs=5)
     ax0.text(gx + m / s, y_front + (H + m * 0.6) / s + 11, "정면도 (문 닫힘)", fontsize=8, weight="bold")
     # 정면도(문 열림)
     gx2 = gx + (W + 2 * m) / s + 6
@@ -1036,12 +1060,13 @@ def hardware_rows(d):
     nh = max(int(p["hinges"]), 1)
     nm_ = max(int(p["mag_n"]), 1)
     side = "왼쪽" if p["ctl_side"] != "R" else "오른쪽"
-    r = [("나비경첩", nh * 2, f"문 한 짝당 {nh}"),
+    r = [("맞경첩(황동)", nh * 2, f"문 한 짝당 {nh}, 문·옆판 옆면에 파서 묻음(겉에 철물 없음)"),
          ("자석 캐치(매립)·철판", nm_ * 2, f"Ø{p['mag_d']:g}, 문 한 짝당 {nm_}"),
-         ("문 손잡이", 2, ""), ("귀장석", 4, "앞 모서리"), ("들쇠", 2, "옆판")]
+         ("원목 손잡이", 2, "문 가운데 쪽, 뒤에서 나사")]
     if gasket_on():
         r.append(("D형 가스켓", 1, f"{p['gasket_w']:g}×{p['gasket_h']:g}, 약 {gasket_len(d) / 1000:.1f} m"))
-    r.append(("온도조절기", 1, f"아래 앞판 {side}, 타공 {p['thermo_w']:g}×{p['thermo_h']:g}(최대), 센서는 활 옆"))
+    r.append(("온습도 조절기(XM-18형)", 1, f"아래 앞판 {side}, 테두리 {p['bezel_w']:g}×{p['bezel_h']:g}, 타공 {p['thermo_w']:g}×{p['thermo_h']:g}, 깊이 {p['ctl_depth']:g}"))
+    r.append(("온도·습도 센서", 2, "활 옆 중간 높이, 선 구멍 Ø8 실리콘 마감"))
     r.append(("전원 리셉터클(IEC 인렛)", 1, f"뒷판 아래 {side}, 수평, 타공 {p['recp_w']:g}×{p['recp_h']:g}, 나사 {p['recp_pitch']:g}"))
     if p["heat"] == "film":
         for nm, w, l in d["films"]:
@@ -1200,12 +1225,17 @@ def validate():
     if need > d["rack_len"]:
         e.append(f"활 {n}장이 거치대에 들어가지 않습니다: 필요 {need:.0f} > 거치대 {d['rack_len']:.0f}. 활 장수를 줄이거나 깊이를 늘리세요.")
     tx, tz, tw, th = d["thermo"]
+    bw, bh = max(p["bezel_w"], tw), max(p["bezel_h"], th)
     if th > p["lower_h"]:
-        e.append(f"온도조절기 홀 세로({th:g})가 하부 공간 안높이({p['lower_h']:g})보다 큽니다.")
-    if tz + th / 2 > d["door_z"][0] - p["gap"] - 5:
-        e.append("온도조절기 홀이 아래 앞판 위로 벗어납니다.")
-    if p["thermo_x"] < p["t"] + d["s"] + 5 or p["thermo_x"] + tw > p["W"] - p["t"] - d["s"] - 5:
-        e.append("온도조절기 홀이 옆판·문틀 띠와 겹칩니다. 위치(옆판→홀)나 가로 크기를 확인하세요.")
+        e.append(f"조절기 몸체 세로({th:g})가 하부 공간 안높이({p['lower_h']:g})보다 큽니다.")
+    if tz + bh / 2 > d["door_z"][0] - p["gap"] - 3:
+        e.append("조절기 앞 테두리가 아래 앞판 위로 벗어납니다.")
+    if p["thermo_x"] < p["t"] + 3 or p["thermo_x"] + bw > p["W"] - p["t"] - 3:
+        e.append("조절기 앞 테두리가 옆판과 겹칩니다. 위치(옆판→테두리)를 확인하세요.")
+    if (tx - tw / 2) < p["t"] + d["s"] or (tx + tw / 2) > p["W"] - p["t"] - d["s"]:
+        e.append("조절기 몸체가 문틀 띠와 겹칩니다. 위치(옆판→테두리)를 늘리세요.")
+    if p["ctl_depth"] > d["cy1"] - p["t"] - 20:
+        e.append("조절기 깊이가 하부 공간 깊이보다 깁니다.")
     rx, rz, rw, rh = d["recp"]
     if rh > p["lower_h"]:
         e.append("리셉터클 타공이 하부 공간보다 큽니다.")

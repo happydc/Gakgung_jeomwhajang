@@ -22,9 +22,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller
       - name: Smoke test (generate drawings)
-        run: python jeomhwajang_core.py
+        run: |
+          python jeomhwajang_core.py
+          python jeomhwajang_3d.py
       - name: Build exe
-        run: pyinstaller --noconfirm --onefile --windowed --icon assets/icon.ico --add-data "assets/icon.png;assets" --name GakgungJeomhwajang jeomhwajang_gui.py
+        run: pyinstaller --noconfirm --onefile --windowed --icon assets/icon.ico --add-data "assets;assets" --name GakgungJeomhwajang jeomhwajang_gui.py
       - uses: actions/upload-artifact@v4
         with:
           name: GakgungJeomhwajang-windows

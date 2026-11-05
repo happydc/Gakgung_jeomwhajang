@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
 import jeomhwajang_core as core
+import jeomhwajang_3d as d3
 from jeomhwajang_preview import Preview, DESCR
 
 APP_TITLE = "각궁 점화장 제작도면 생성기"
@@ -35,7 +36,9 @@ TABS = [
     ("하부·전원", [
         ("lower_h", "하부 공간 안높이", "mm"), ("shelf_t", "선반 두께", "mm"), ("cleat", "선반받이 각재", "mm"),
         ("vent_w", "통풍 슬롯 폭", "mm"), ("vent_pitch", "통풍 슬롯 간격", "mm"),
-        ("thermo_w", "온도조절기 홀 가로", "mm"), ("thermo_h", "온도조절기 홀 세로", "mm"), ("thermo_x", "옆판→온도조절기 홀", "mm"),
+        ("thermo_w", "조절기 타공 가로", "mm"), ("thermo_h", "조절기 타공 세로", "mm"),
+        ("bezel_w", "조절기 앞 테두리 가로", "mm"), ("bezel_h", "조절기 앞 테두리 세로", "mm"),
+        ("ctl_depth", "조절기 깊이", "mm"), ("thermo_x", "옆판→조절기 테두리", "mm"),
         ("recp_w", "리셉터클 타공 가로", "mm"), ("recp_h", "리셉터클 타공 세로", "mm"), ("recp_pitch", "리셉터클 나사 간격", "mm"),
         ("recp_hole", "리셉터클 나사 구멍", "mm"), ("recp_x", "옆판→리셉터클 타공", "mm"), ("set_temp", "설정 온도", "℃"),
     ]),
@@ -92,7 +95,7 @@ class App(tk.Tk):
         for title, fields in TABS:
             fr = ttk.Frame(nb)
             nb.add(fr, text=title)
-            nrow = 8
+            nrow = 9
             for i, (k, lab, unit) in enumerate(fields):
                 rr, cc = i % nrow, (i // nrow) * 3
                 la = ttk.Label(fr, text=lab)
@@ -113,7 +116,7 @@ class App(tk.Tk):
                 self._hover("gasket", cb)
             if title == "하부·전원":
                 self.side = tk.StringVar(value=core.PARAM["ctl_side"])
-                sf = ttk.LabelFrame(fr, text="온도조절기·리셉터클 위치")
+                sf = ttk.LabelFrame(fr, text="온습도 조절기·리셉터클 위치")
                 sf.grid(row=r, column=0, columnspan=6, sticky="ew", padx=6, pady=6)
                 for val, txt in (("L", "왼쪽"), ("R", "오른쪽")):
                     ttk.Radiobutton(sf, text=txt, value=val, variable=self.side, command=self._refresh).pack(side="left", padx=6)
@@ -155,6 +158,8 @@ class App(tk.Tk):
         self.outdir = tk.StringVar(value=os.path.join(os.path.expanduser("~"), "Documents", "점화장도면"))
         ttk.Entry(bot, textvariable=self.outdir, width=34).grid(row=0, column=1, padx=4)
         ttk.Button(bot, text="찾기…", command=self._browse).grid(row=0, column=2)
+        self.want3d = tk.BooleanVar(value=True)
+        ttk.Checkbutton(left, text="3D 모델(OBJ · SketchUp용 DAE)과 3D 뷰어도 생성", variable=self.want3d).pack(anchor="w", pady=(6, 0))
         bf = ttk.Frame(left)
         bf.pack(fill="x", pady=(8, 0))
         self.btn = ttk.Button(bf, text="도면 생성", command=self._run)
@@ -240,12 +245,15 @@ class App(tk.Tk):
                                            + "\n\n그래도 도면을 만들까요?"):
             return
         out = self.outdir.get().strip() or "."
+        want3d = self.want3d.get()
         self.btn.state(["disabled"])
         self.status.set("생성 중…")
 
         def work():
             try:
                 files = core.generate(out, params=params)
+                if want3d:
+                    files += d3.export_3d(out, params=params)
                 self.after(0, lambda: self._done(out, files))
             except Exception as e:  # noqa
                 self.after(0, lambda: self._fail(e))

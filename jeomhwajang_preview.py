@@ -37,8 +37,10 @@ DESCR = {
     "cleat": "선반받이 각재 — 옆속판에 붙여 선반을 얹음",
     "vent_w": "통풍 슬롯 폭", "vent_pitch": "통풍 슬롯 간격",
     "ctl_side": "온도조절기(아래 앞판)·리셉터클(뒷판 아래) 위치",
-    "thermo_w": "온도조절기 홀 가로(최대)", "thermo_h": "온도조절기 홀 세로(최대)",
-    "thermo_x": "옆판 바깥 → 온도조절기 홀 가장자리",
+    "thermo_w": "온습도 조절기 몸체 타공 가로 — 실물 몸체에 맞춤", "thermo_h": "온습도 조절기 몸체 타공 세로",
+    "bezel_w": "조절기 앞 테두리 가로(XM-18: 160)", "bezel_h": "조절기 앞 테두리 세로(XM-18: 80)",
+    "ctl_depth": "조절기 깊이 — 테두리 포함(XM-18: 89)",
+    "thermo_x": "옆판 바깥 → 조절기 앞 테두리 가장자리",
     "recp_w": "리셉터클(IEC 인렛) 몸체 타공 가로 — 수평 배치", "recp_h": "리셉터클 몸체 타공 세로",
     "recp_pitch": "리셉터클 나사 구멍 좌우 간격", "recp_hole": "리셉터클 나사 구멍 지름",
     "recp_x": "옆판 바깥 → 리셉터클 타공 가장자리(덮개 젖힘 여유 포함)",
@@ -151,7 +153,7 @@ class Preview(tk.Canvas):
                 self.create_rectangle(fx(x0), fz(z1), fx(x1), fz(z0), fill=HL if hl else col,
                                       outline=HL if hl else "#6b5535", width=2 if hl else 1)
             for kind, xc, zc, w, h in q.get("holes", []):
-                hk = self.key in ("ctl_side",) or (self.key or "").startswith("thermo" if kind == "thermo" else "recp")
+                hk = self.key in ("ctl_side",) or (self.key or "").startswith(("thermo", "bezel", "ctl_depth") if kind == "thermo" else "recp")
                 self.create_rectangle(fx(xc - w / 2), fz(zc + h / 2), fx(xc + w / 2), fz(zc - h / 2),
                                       outline=HL if hk else "#333", width=2 if hk else 1,
                                       fill="" if kind == "recp" else ("#ffd0d0" if hk else "#cfc6b8"), dash=(2, 2) if kind == "recp" else ())
