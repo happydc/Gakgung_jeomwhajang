@@ -516,6 +516,7 @@ def checks(parts, d):
 
 # ---------------------------------------------------------------- 그리기 도구
 A3 = (420.0, 297.0)
+CREDIT = "@용현정 이동철"
 
 
 def new_sheet(title, sub, no, total, scale_txt):
@@ -533,6 +534,7 @@ def new_sheet(title, sub, no, total, scale_txt):
     ax.text(x0 + 4, y0 + 6.5, sub, fontsize=6.5, va="center")
     ax.text(x0 + 97, y0 + 9, f"축척 {scale_txt}", fontsize=6.5, va="center")
     ax.text(x0 + 97, y0 + 3.5, f"{no} / {total}   {datetime.date.today():%Y-%m-%d}", fontsize=6, va="center")
+    ax.text(x0 + w - 3, y0 + 9, CREDIT, fontsize=6.5, va="center", ha="right", weight="bold", color="#5a3d1e")
     return fig, ax
 
 

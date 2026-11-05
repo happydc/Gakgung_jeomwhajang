@@ -15,6 +15,7 @@ import jeomhwajang_3d as d3
 from jeomhwajang_preview import Preview, DESCR
 
 APP_TITLE = "각궁 점화장 제작도면 생성기"
+CREDIT = "@용현정 이동철"
 SETTINGS = os.path.join(os.path.expanduser("~"), ".gakgung_jeomhwajang_v2.json")
 
 # 탭: [(키, 라벨, 단위)]
@@ -67,7 +68,7 @@ LABELS = {k: l for _, fs in TABS for k, l, _ in fs}
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title(APP_TITLE)
+        self.title(f"{APP_TITLE} — {CREDIT}")
         try:
             base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
             self._icon = tk.PhotoImage(file=os.path.join(base, "assets", "icon.png"))
@@ -190,6 +191,7 @@ class App(tk.Tk):
         ttk.Button(bf, text="기본값", command=self._reset).pack(side="left", padx=6)
         self.status = tk.StringVar(value="치수를 확인하고 [도면 생성]을 누르세요.")
         ttk.Label(left, textvariable=self.status, foreground="#555", wraplength=330).pack(anchor="w", pady=(6, 0))
+        ttk.Label(left, text=CREDIT, foreground="#5a3d1e", font=("Malgun Gothic", 10, "bold")).pack(anchor="e", pady=(10, 0))
 
     def _hover(self, key, *widgets):
         for w in widgets:

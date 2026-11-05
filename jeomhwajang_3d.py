@@ -314,7 +314,7 @@ def export_3d(outdir="output", params=None):
 VIEWER = r"""<!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>각궁 점화장 3D 뷰어</title>
+<title>각궁 점화장 3D 뷰어 — @용현정 이동철</title>
 <style>
  *{box-sizing:border-box} html,body{margin:0;height:100%;background:#f4f1ea;color:#2b2620;
    font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;overflow:hidden}
@@ -345,6 +345,7 @@ VIEWER = r"""<!DOCTYPE html>
  <label><input type="radio" name="bow" value="closed"> 오므라든 활</label>
  <button id="reset">시점 처음으로</button>
  <div class="mut" style="margin-top:8px">왼쪽 끌기: 회전 · 오른쪽 끌기: 이동 · 휠: 확대</div>
+ <div style="margin-top:10px;text-align:right;font-weight:600;color:#5a3d1e">@용현정 이동철</div>
 </div>
 <script>__THREE__</script>
 <script>__ORBIT__</script>
