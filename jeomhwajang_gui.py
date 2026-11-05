@@ -24,23 +24,29 @@ TABS = [
         ("pin_pitch", "사개 손 간격", "mm"), ("dado", "홈 깊이", "mm"),
     ]),
     ("단열·밀폐", [
-        ("t_ins", "단열재 두께", "mm"), ("t_in", "속판(삼나무) 두께", "mm"),
-        ("gasket_w", "가스켓 폭", "mm"), ("gasket_h", "가스켓 높이", "mm"),
+        ("t_ins", "단열재 두께", "mm"), ("t_in", "속판(삼나무) 두께", "mm"), ("frame_d", "문틀 띠 깊이", "mm"),
+        ("gasket_w", "가스켓 폭", "mm"), ("gasket_h", "가스켓 두께", "mm"),
         ("gap", "문 둘레 틈", "mm"), ("plug_gap", "문 플러그 틈", "mm"), ("rebate", "양문 턱 너비", "mm"),
     ]),
-    ("문·조절부", [
-        ("t_door", "문 겉판 두께", "mm"), ("hinges", "경첩 수(한 짝)", "개"),
-        ("ctl_h", "조절부 칸 안높이", "mm"), ("thermo_w", "온도조절기 타공 가로", "mm"),
-        ("thermo_h", "온도조절기 타공 세로", "mm"), ("dial_w", "다이얼 타공 가로", "mm"),
-        ("dial_h", "다이얼 타공 세로", "mm"), ("set_temp", "설정 온도", "℃"),
+    ("문", [
+        ("door_h", "문 높이(천판 아래부터)", "mm"), ("t_door", "문 겉판 두께", "mm"), ("hinges", "경첩 수(한 짝)", "개"),
+        ("mag_n", "자석 캐치 수(한 짝, 1~2)", "개"), ("mag_d", "자석 지름", "mm"), ("mag_off", "자석: 가운데→거리", "mm"),
+    ]),
+    ("하부·전원", [
+        ("lower_h", "하부 공간 안높이", "mm"), ("shelf_t", "선반 두께", "mm"), ("cleat", "선반받이 각재", "mm"),
+        ("vent_w", "통풍 슬롯 폭", "mm"), ("vent_pitch", "통풍 슬롯 간격", "mm"),
+        ("thermo_w", "온도조절기 홀 가로", "mm"), ("thermo_h", "온도조절기 홀 세로", "mm"), ("thermo_x", "옆판→온도조절기 홀", "mm"),
+        ("recp_w", "리셉터클 타공 가로", "mm"), ("recp_h", "리셉터클 타공 세로", "mm"), ("recp_pitch", "리셉터클 나사 간격", "mm"),
+        ("recp_hole", "리셉터클 나사 구멍", "mm"), ("recp_x", "옆판→리셉터클 타공", "mm"), ("set_temp", "설정 온도", "℃"),
     ]),
     ("열원", [
         ("film_w", "필름 최대 폭", "mm"), ("film_margin", "필름 여유", "mm"), ("film_wpm2", "필름 전력", "W/m²"),
-        ("bulb_watt", "전구 전력", "W"), ("bulb_d", "전구 지름", "mm"), ("bulb_h", "전구 높이", "mm"),
+        ("ptc_w", "PTC 가로", "mm"), ("ptc_d", "PTC 깊이", "mm"), ("ptc_h", "PTC 높이", "mm"), ("ptc_watt", "PTC 전력", "W"),
     ]),
     ("거치대", [
         ("rack_drop", "속 천장→거치대 윗면", "mm"), ("rack_gap", "받침 중심 간격", "mm"),
-        ("rack_back", "뒤 여유", "mm"), ("r1_w", "① 받침 폭", "mm"), ("r1_h", "① 받침 높이", "mm"),
+        ("rack_back", "뒤 여유", "mm"), ("rack_front", "앞끝→문 안쪽 면", "mm"), ("rack_r", "활 닿는 부분 R", "mm"),
+        ("r1_w", "① 받침 폭", "mm"), ("r1_h", "① 받침 높이", "mm"),
         ("r1_tip", "① 끝 두께", "mm"), ("r1_lip", "① 끝 턱 높이", "mm"), ("r2_d", "② 막대 지름", "mm"),
         ("r3_arm", "③ 각재 단면", "mm"), ("r3_cap_w", "③ 받침 폭", "mm"), ("r3_cap_h", "③ 받침 높이", "mm"),
     ]),
@@ -86,23 +92,37 @@ class App(tk.Tk):
         for title, fields in TABS:
             fr = ttk.Frame(nb)
             nb.add(fr, text=title)
+            nrow = 8
             for i, (k, lab, unit) in enumerate(fields):
+                rr, cc = i % nrow, (i // nrow) * 3
                 la = ttk.Label(fr, text=lab)
-                la.grid(row=i, column=0, sticky="e", **pad)
+                la.grid(row=rr, column=cc, sticky="e", **pad)
                 v = tk.StringVar(value=f"{core.PARAM[k]:g}")
-                en = ttk.Entry(fr, textvariable=v, width=9, justify="right")
-                en.grid(row=i, column=1, **pad)
-                ttk.Label(fr, text=unit).grid(row=i, column=2, sticky="w", padx=(0, 10))
+                en = ttk.Entry(fr, textvariable=v, width=8, justify="right")
+                en.grid(row=rr, column=cc + 1, **pad)
+                ttk.Label(fr, text=unit).grid(row=rr, column=cc + 2, sticky="w", padx=(0, 10))
                 self.vars[k] = v
                 self._hover(k, la, en)
                 en.bind("<FocusOut>", lambda e: self._refresh(), add="+")
                 en.bind("<Return>", lambda e: self._refresh(), add="+")
-            r = len(fields)
+            r = min(len(fields), nrow)
+            if title == "단열·밀폐":
+                self.gasket = tk.BooleanVar(value=core.gasket_on())
+                cb = ttk.Checkbutton(fr, text="가스켓 사용", variable=self.gasket, command=self._refresh)
+                cb.grid(row=r, column=0, columnspan=3, sticky="w", padx=6, pady=6)
+                self._hover("gasket", cb)
+            if title == "하부·전원":
+                self.side = tk.StringVar(value=core.PARAM["ctl_side"])
+                sf = ttk.LabelFrame(fr, text="온도조절기·리셉터클 위치")
+                sf.grid(row=r, column=0, columnspan=6, sticky="ew", padx=6, pady=6)
+                for val, txt in (("L", "왼쪽"), ("R", "오른쪽")):
+                    ttk.Radiobutton(sf, text=txt, value=val, variable=self.side, command=self._refresh).pack(side="left", padx=6)
+                self._hover("ctl_side", sf)
             if title == "열원":
                 self.heat = tk.StringVar(value=core.PARAM["heat"])
                 hf = ttk.LabelFrame(fr, text="열원 종류")
                 hf.grid(row=r, column=0, columnspan=3, sticky="ew", padx=6, pady=6)
-                for val, txt in (("film", "면상필름"), ("bulb", "적외선 전구")):
+                for val, txt in (("film", "면상필름"), ("ptc", "PTC 히터(하부 바닥)")):
                     ttk.Radiobutton(hf, text=txt, value=val, variable=self.heat, command=self._refresh).pack(side="left", padx=6)
                 self._hover("heat", hf)
                 ff = ttk.LabelFrame(fr, text="필름 붙일 면")
@@ -171,6 +191,8 @@ class App(tk.Tk):
                 raise ValueError(f"'{LABELS[k]}' 값은 0 이상이어야 합니다.")
         p["heat"] = self.heat.get()
         p["rack"] = self.rack.get()
+        p["gasket"] = "1" if self.gasket.get() else "0"
+        p["ctl_side"] = self.side.get()
         p["film_faces"] = ",".join(n for n, b in self.face_vars.items() if b.get())
         return p
 
@@ -190,6 +212,8 @@ class App(tk.Tk):
             v.set(f"{self.defaults[k]:g}")
         self.heat.set(self.defaults["heat"])
         self.rack.set(self.defaults["rack"])
+        self.gasket.set(str(self.defaults["gasket"]) == "1")
+        self.side.set(self.defaults["ctl_side"])
         cur = [f.strip() for f in self.defaults["film_faces"].split(",")]
         for n, b in self.face_vars.items():
             b.set(n in cur)
@@ -200,6 +224,8 @@ class App(tk.Tk):
             params = self._params(strict=True)
             if params["n_bows"] < 1 or params["n_bows"] != int(params["n_bows"]):
                 raise ValueError("활 장수는 1 이상의 정수여야 합니다.")
+            if params["mag_n"] not in (1, 2):
+                raise ValueError("자석 캐치 수는 1(위) 또는 2(위·아래)입니다.")
             core.apply(params)
             errs = core.validate()
             if errs:
@@ -246,6 +272,7 @@ class App(tk.Tk):
         try:
             data = {"params": {k: v.get() for k, v in self.vars.items()},
                     "heat": self.heat.get(), "rack": self.rack.get(),
+                    "gasket": self.gasket.get(), "ctl_side": self.side.get(),
                     "faces": [n for n, b in self.face_vars.items() if b.get()],
                     "outdir": self.outdir.get()}
             with open(SETTINGS, "w", encoding="utf-8") as fp:
@@ -264,6 +291,12 @@ class App(tk.Tk):
                 self.heat.set(data["heat"])
             if data.get("rack"):
                 self.rack.set(data["rack"])
+            if "gasket" in data:
+                self.gasket.set(bool(data["gasket"]))
+            if data.get("ctl_side") in ("L", "R"):
+                self.side.set(data["ctl_side"])
+            if data.get("heat") not in ("film", "ptc"):
+                self.heat.set("film")
             if "faces" in data:
                 for n, b in self.face_vars.items():
                     b.set(n in data["faces"])

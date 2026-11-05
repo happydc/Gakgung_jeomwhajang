@@ -42,52 +42,63 @@ plt.rcParams["axes.unicode_minus"] = False
 PARAM = dict(
     # 본체
     W=920.0, H=950.0, D=320.0,      # 외형 가로·높이·깊이
-    t=18.0,                         # 겉판 두께(옆판·천판·지판·뒷판·중간판)
+    t=18.0,                         # 겉판 두께(옆판·천판·지판·뒷판·아래 앞판)
     foot_h=30.0, foot_w=60.0,       # 발 높이·크기(4개)
     pin_pitch=40.0,                 # 사개 손 간격(목표)
-    dado=6.0,                       # 중간판·뒷판 홈 깊이
+    dado=6.0,                       # 뒷판·아래 앞판 홈 깊이
     # 단열·밀폐
     t_ins=10.0,                     # 단열재 두께
     t_in=9.0,                       # 속판(삼나무) 두께
-    gasket_w=9.0, gasket_h=6.0,     # 가스켓 폭·높이(D형)
+    frame_d=20.0,                   # 문틀 띠 깊이(단열층 앞 원목 띠)
+    gasket="1",                     # 가스켓 사용 1 / 0
+    gasket_w=9.0, gasket_h=6.0,     # 가스켓 폭·두께
     gap=2.0,                        # 문 둘레 틈
     plug_gap=3.0,                   # 문 단열 플러그 둘레 틈
     rebate=12.0,                    # 양문 맞닿는 턱 너비
-    # 문·조절부
+    # 문
+    door_h=500.0,                   # 문 높이(천판 아래에서 아래로)
     t_door=18.0,                    # 문 겉판 두께
     hinges=2,                       # 문 한 짝당 경첩 수
-    ctl_h=130.0,                    # 아래 조절부 칸 안높이(0이면 조절부 없음)
-    thermo_w=71.0, thermo_h=29.0,   # 온도조절기 타공
-    dial_w=46.0, dial_h=46.0,       # 다이얼(조광·타이머) 타공
+    mag_n=1,                        # 문 한 짝당 자석 캐치 수(1: 위, 2: 위·아래)
+    mag_d=12.0, mag_off=60.0,       # 자석 지름, 가운데에서 떨어진 거리
+    # 하부 공간·선반
+    lower_h=160.0,                  # 하부 공간 안높이(속 바닥 → 선반 아랫면)
+    shelf_t=18.0,                   # 선반 두께
+    cleat=20.0,                     # 선반받이 각재
+    vent_w=10.0, vent_pitch=30.0,   # 통풍 슬롯 폭·간격
+    # 온도조절기·전원
+    ctl_side="L",                   # 온도조절기·리셉터클 쪽 L/R
+    thermo_w=160.0, thermo_h=80.0,  # 온도조절기 홀(최대)
+    thermo_x=60.0,                  # 옆판 바깥 → 홀 가장자리
+    recp_w=32.0, recp_h=22.0,       # 전원 리셉터클(IEC 인렛, 수평 배치) 몸체 타공
+    recp_pitch=40.0, recp_hole=3.2, # 나사 구멍 좌우 간격·지름
+    recp_x=60.0,                    # 옆판 바깥 → 타공 가장자리(뒤에서 볼 때 같은 쪽)
     set_temp=30.0,                  # 설정 온도 ℃
     # 열원
-    heat="film",                    # film | bulb
-    film_faces="뒤,아래,좌,우",       # 필름 붙일 면: 뒤 위 아래 좌 우
-    film_w=800.0,                   # 필름 최대 폭
-    film_margin=20.0,               # 속판 가장자리 여유
-    film_wpm2=200.0,                # 필름 소비전력 W/m²
-    bulb_watt=150.0, bulb_d=125.0, bulb_h=180.0,   # 적외선 전구(소켓 포함 높이)
+    heat="film",                    # film 면상필름 | ptc PTC 히터
+    film_faces="뒤,아래,좌,우",
+    film_w=800.0, film_margin=20.0, film_wpm2=200.0,
+    ptc_w=120.0, ptc_d=70.0, ptc_h=60.0, ptc_watt=100.0,   # PTC 히터(하부 바닥)
     # 거치대
     rack="1",                       # 1 삼각 받침 2개 / 2 둥근 막대 2개 / 3 줌걸이 1개
     rack_drop=100.0,                # 속 천장 → 거치대 윗면
     rack_gap=260.0,                 # 받침·막대 중심 간격(1·2형)
-    rack_back=10.0,                 # 뒷속판 → 첫 활 사이 여유
-    r1_w=40.0, r1_h=90.0, r1_tip=30.0, r1_lip=12.0,   # 삼각 받침: 폭, 높이, 끝 두께, 턱 높이
-    r2_d=25.0,                      # 둥근 막대 지름
-    r3_arm=40.0, r3_cap_w=120.0, r3_cap_h=30.0,       # 줌걸이: 각재 단면, 받침 폭·높이
+    rack_back=10.0,                 # 뒷속판 → 첫 활
+    rack_front=5.0,                 # 거치대 앞끝 → 문 안쪽 면
+    rack_r=8.0,                     # 활 닿는 부분 라운드 R
+    r1_w=40.0, r1_h=90.0, r1_tip=30.0, r1_lip=12.0,
+    r2_d=25.0,
+    r3_arm=40.0, r3_cap_w=120.0, r3_cap_h=30.0,
     # 활
-    n_bows=4,                       # 활 장수
-    bow_pitch=50.0,                 # 활 1장(궁대 포함) 두께
-    bow_open_span=800.0,            # 벌어진 부린활: 고자~고자 최대 폭
-    bow_open_h=450.0,               # 벌어진 부린활: 줌통~고자 높이
-    bow_ring_w=560.0, bow_ring_h=500.0,   # 오므라든 부린활 외경
-    bow_limb=25.0,                  # 활채 너비(정면에서 보이는 두께)
-    clear=20.0,                     # 활 둘레 최소 여유
+    n_bows=4, bow_pitch=50.0,
+    bow_open_span=800.0, bow_open_h=450.0,
+    bow_ring_w=560.0, bow_ring_h=500.0,
+    bow_limb=25.0, clear=20.0,
 )
 
 FACE_NAMES = ("뒤", "위", "아래", "좌", "우")
-INT_KEYS = ("hinges", "n_bows")
-STR_KEYS = ("heat", "film_faces", "rack")
+INT_KEYS = ("hinges", "n_bows", "mag_n")
+STR_KEYS = ("heat", "film_faces", "rack", "gasket", "ctl_side")
 
 MAT = {
     "pine": ("레드파인", "#e8cc98"),
@@ -97,7 +108,7 @@ MAT = {
     "steel": ("철물", "#555555"),
     "film": ("면상필름", "#e03030"),
     "gasket": ("가스켓", "#222222"),
-    "bulb": ("전구", "#f08a3c"),
+    "ptc": ("PTC 히터", "#9aa3ad"),
 }
 
 
@@ -122,21 +133,20 @@ def pins(L, pitch):
 
 
 def notched_board(length, width, bnds, t, notch_odd):
-    """양 끝(길이 방향 0, length)에 사개 홈을 낸 판의 전개 외곽.
-    bnds: 너비 방향 구간 경계, notch_odd=True면 홀수 구간을 깊이 t만큼 파냄"""
+    """양 끝(길이 방향 0, length)에 사개 홈을 낸 판의 전개 외곽"""
     segs = list(zip(bnds[:-1], bnds[1:]))
     cut = [(i % 2 == 1) == notch_odd for i in range(len(segs))]
     pts = []
-    for (a, b), c in zip(segs, cut):                 # 왼쪽 끝, 아래→위
+    for (a, b), c in zip(segs, cut):
         x = t if c else 0.0
         pts += [(x, a), (x, b)]
-    for (a, b), c in reversed(list(zip(segs, cut))):  # 오른쪽 끝, 위→아래
+    for (a, b), c in reversed(list(zip(segs, cut))):
         x = length - t if c else length
         pts += [(x, b), (x, a)]
     out = []
-    for p in pts:
-        if not out or (abs(out[-1][0] - p[0]) > 1e-9 or abs(out[-1][1] - p[1]) > 1e-9):
-            out.append(p)
+    for q in pts:
+        if not out or (abs(out[-1][0] - q[0]) > 1e-9 or abs(out[-1][1] - q[1]) > 1e-9):
+            out.append(q)
     return out
 
 
@@ -144,31 +154,45 @@ def rect(w, h):
     return [(0, 0), (w, 0), (w, h), (0, h)]
 
 
+def gasket_on():
+    return str(P()["gasket"]) in ("1", "True", "true", "on")
+
+
 def derive():
-    """주요 기준 치수"""
+    """주요 기준 높이·위치"""
     p = P()
     t, ti, tl = p["t"], p["t_ins"], p["t_in"]
     W, H, D = p["W"], p["H"], p["D"]
-    f = p["foot_h"]
-    s = ti + tl                                  # 단열층 두께
-    zb = f                                       # 지판 아랫면
-    ctl = max(p["ctl_h"], 0.0)
-    if ctl > 0:
-        zd = f + t + ctl                         # 중간판 아랫면
-    else:
-        zd = f                                   # 조절부 없음: 지판이 곧 바닥
-    zf = zd + t                                  # 중간판 윗면(겉)
+    f, td, g = p["foot_h"], p["t_door"], p["gap"]
+    s = ti + tl
+    gk = p["gasket_h"] * 0.5 if gasket_on() else 0.0      # 가스켓 눌린 두께
+    yfront = td + gk                                       # 문틀 띠 앞면
+    y0i = yfront + p["frame_d"]                            # 단열층 시작
+    zt1 = H - t                                            # 천판 아랫면
+    zb1 = f + t                                            # 지판 윗면
+    dz1 = zt1 - g
+    dz0 = dz1 - p["door_h"]
     d = dict(
-        s=s, zb=zb, zd=zd, zf=zf, ctl=ctl,
+        s=s, gk=gk, yfront=yfront, y0i=y0i, zt1=zt1, zb1=zb1,
+        dz0=dz0, dz1=dz1, rail0=dz0 - s, rail1=dz0 + s,      # 문 아래 문틀 띠
         cx0=t + s, cx1=W - t - s,
-        cy0=p["t_door"] + s, cy1=D - t - s,
-        cz0=zf + s, cz1=H - t - s,
+        cy0=td + s, cy1=D - t - s,
+        cz0=zb1 + s, cz1=zt1 - s,
         xm=W / 2,
     )
-    d["cw"], d["cd"], d["ch"] = d["cx1"] - d["cx0"], d["cy1"] - d["cy0"], d["cz1"] - d["cz0"]
+    d["zs0"] = d["cz0"] + p["lower_h"]                     # 선반 아랫면
+    d["zs1"] = d["zs0"] + p["shelf_t"]                     # 선반 윗면(활 칸 바닥)
+    d["cw"], d["cd"], d["ch"] = d["cx1"] - d["cx0"], d["cy1"] - d["cy0"], d["cz1"] - d["zs1"]
     d["rack_top"] = d["cz1"] - p["rack_drop"]
-    n = int(p["n_bows"])
-    d["rack_len"] = p["rack_back"] + n * p["bow_pitch"] + (p["r1_lip"] if p["rack"] == "1" else 15.0)
+    d["rack_len"] = d["cd"] - p["rack_front"]
+    d["door_z"] = (dz0, dz1)
+    d["open_h"] = d["cz1"] - d["rail1"]                    # 문 열린 높이(문틀 띠 사이)
+    left = p["ctl_side"] != "R"
+    tw, th = p["thermo_w"], p["thermo_h"]
+    tx = (p["thermo_x"] + tw / 2) if left else (W - p["thermo_x"] - tw / 2)
+    d["thermo"] = (tx, (d["cz0"] + d["zs0"]) / 2, tw, th)
+    rx = (p["recp_x"] + p["recp_w"] / 2) if left else (W - p["recp_x"] - p["recp_w"] / 2)
+    d["recp"] = (rx, (d["cz0"] + d["zs0"]) / 2, p["recp_w"], p["recp_h"])
     return d
 
 
@@ -176,120 +200,229 @@ def faces():
     return [f.strip() for f in str(P()["film_faces"]).replace(" ", ",").split(",") if f.strip() in FACE_NAMES]
 
 
+def shelf_slots(sw, sd):
+    """선반 통풍 슬롯(선반 좌표: 가로 sw, 깊이 sd) → [(x0, y0, w, h)]"""
+    p = P()
+    m = 40.0
+    vw, vp = p["vent_w"], max(p["vent_pitch"], p["vent_w"] + 5)
+    n = int((sw - 2 * m - vw) // vp) + 1
+    if n < 1 or sd - 2 * m <= 10:
+        return []
+    x0 = (sw - (vw + (n - 1) * vp)) / 2
+    return [(x0 + i * vp, m, vw, sd - 2 * m) for i in range(n)]
+
+
 def build():
     """모든 부재 목록"""
     p, d = P(), derive()
     W, H, D = p["W"], p["H"], p["D"]
-    t, ti, tl = p["t"], p["t_ins"], p["t_in"]
-    f, td = p["foot_h"], p["t_door"]
-    zd, zf = d["zd"], d["zf"]
-    xm, g = d["xm"], p["gap"]
+    t, ti, tl, s = p["t"], p["t_ins"], p["t_in"], d["s"]
+    f, td, g = p["foot_h"], p["t_door"], p["gap"]
+    xm, yf, y0i = d["xm"], d["yfront"], d["y0i"]
+    zt1, zb1 = d["zt1"], d["zb1"]
+    dz0, dz1 = d["door_z"]
+    yb = D - t
     parts = []
     A = parts.append
 
-    # --- 몸체 겉판(사개: 천판·지판 ↔ 옆판, 깊이 방향)
+    # --- 몸체 겉판(사개: 천판·지판 ↔ 옆판)
     bn = pins(D, p["pin_pitch"])
     side_len = H - f
-    A(_box("천판", 0, W, 0, D, H - t, H, "pine", keys={"W", "D", "t", "pin_pitch"},
-           tags={"shell"}, bom=("천판", "pine", W, D, t, "사개"), dev=notched_board(W, D, bn, t, True)))
-    A(_box("지판", 0, W, 0, D, f, f + t, "pine", keys={"W", "D", "t", "pin_pitch"},
-           tags={"shell"}, bom=("지판", "pine", W, D, t, "사개"), dev=notched_board(W, D, bn, t, True)))
+    A(_box("천판", 0, W, 0, D, zt1, H, "pine", keys={"W", "D", "t", "pin_pitch"}, tags={"shell"},
+           bom=("천판", "pine", W, D, t, "사개"), dev=notched_board(W, D, bn, t, True)))
+    A(_box("지판", 0, W, 0, D, f, zb1, "pine", keys={"W", "D", "t", "pin_pitch"}, tags={"shell"},
+           bom=("지판", "pine", W, D, t, "사개"), dev=notched_board(W, D, bn, t, True)))
     for nm, x0 in (("옆판(좌)", 0), ("옆판(우)", W - t)):
-        A(_box(nm, x0, x0 + t, 0, D, f, H, "pine", keys={"H", "D", "t", "pin_pitch", "foot_h"},
-               tags={"shell"}, bom=("옆판", "pine", side_len, D, t, "사개, 들쇠"),
-               dev=notched_board(side_len, D, bn, t, False)))
-    A(_box("뒷판", t, W - t, D - t, D, f + t, H - t, "pine", keys={"W", "H", "t"}, tags={"shell"},
-           bom=("뒷판", "pine", W - 2 * t + 2 * p["dado"], H - f - 2 * t + 2 * p["dado"], t, "홈 끼움")))
-    if d["ctl"] > 0:
-        yd = td + p["gasket_h"] * 0.5
-        A(_box("중간판", t, W - t, yd, D - t, zd, zf, "pine", keys={"ctl_h", "t"}, tags={"shell"},
-               bom=("중간판(조절부 위)", "pine", W - 2 * t + 2 * p["dado"], D - t - yd + p["dado"], t, "홈 끼움")))
-        holes = []
-        cxh = t + 40 + p["thermo_w"] / 2
-        holes.append(("thermo", cxh, p["thermo_w"], p["thermo_h"]))
-        holes.append(("dial", cxh + p["thermo_w"] / 2 + 40 + p["dial_w"] / 2, p["dial_w"], p["dial_h"]))
-        A(_box("조절부 앞판", t, W - t, 0, t, f + t, zd + 0.0, "pine", keys={"ctl_h", "thermo_w", "thermo_h", "dial_w", "dial_h"},
-               tags={"shell", "front"}, holes=holes,
-               bom=("조절부 앞판", "pine", W - 2 * t, zd - f - t, t, "온도조절기·다이얼 타공")))
-    # 발
+        A(_box(nm, x0, x0 + t, 0, D, f, H, "pine", keys={"H", "D", "t", "pin_pitch", "foot_h"}, tags={"shell"},
+               bom=("옆판", "pine", side_len, D, t, "사개, 들쇠"), dev=notched_board(side_len, D, bn, t, False)))
+    rx, rz, rw, rh = d["recp"]
+    A(_box("뒷판", t, W - t, yb, D, zb1, zt1, "pine", keys={"W", "H", "t", "recp_w", "recp_h", "recp_x", "ctl_side"},
+           tags={"shell", "back"}, holes=[("recp", rx, rz, rw, rh)],
+           bom=("뒷판", "pine", W - 2 * t + 2 * p["dado"], zt1 - zb1 + 2 * p["dado"], t, "홈 끼움, 리셉터클 타공(앞에서 본 위치)"),
+           dev=rect(W - 2 * t + 2 * p["dado"], zt1 - zb1 + 2 * p["dado"]),
+           dev_holes=[("recp", rx - (t - p["dado"]), rz - (zb1 - p["dado"]), rw, rh)]))
+    tx, tz, tw, th = d["thermo"]
+    A(_box("아래 앞판", t, W - t, 0, t, zb1, dz0 - g, "pine",
+           keys={"door_h", "thermo_w", "thermo_h", "thermo_x", "ctl_side", "lower_h"}, tags={"shell", "front"},
+           holes=[("thermo", tx, tz, tw, th)],
+           bom=("아래 앞판", "pine", W - 2 * t + 2 * p["dado"], dz0 - g - zb1 + p["dado"], t, "홈 끼움, 온도조절기 타공"),
+           dev=rect(W - 2 * t + 2 * p["dado"], dz0 - g - zb1 + p["dado"]),
+           dev_holes=[("thermo", tx - (t - p["dado"]), tz - (zb1 - p["dado"]), tw, th)]))
     fw = p["foot_w"]
-    for i, (x0, y0) in enumerate(((10, 10), (W - 10 - fw, 10), (10, D - 10 - fw), (W - 10 - fw, D - 10 - fw))):
-        A(_box("발", x0, x0 + fw, y0, y0 + fw, 0, f, "pine", keys={"foot_h", "foot_w"},
-              tags={"foot"}, bom=("발", "pine", fw, fw, f, "") if f > 0 else None))
+    if f > 0:
+        for x0, y0 in ((10, 10), (W - 10 - fw, 10), (10, D - 10 - fw), (W - 10 - fw, D - 10 - fw)):
+            A(_box("발", x0, x0 + fw, y0, y0 + fw, 0, f, "pine", keys={"foot_h", "foot_w"}, tags={"foot"},
+                   bom=("발", "pine", fw, fw, f, "")))
 
-    # --- 단열층 + 속판 (위·아래가 전체, 옆이 그 사이, 뒤가 가장 안쪽)
-    xi0, xi1 = t, W - t
-    zt1 = H - t                       # 천판 아랫면
-    gk = p["gasket_h"] * 0.5          # 가스켓 눌린 두께
-    yfront = td + gk                  # 문받이 면(단열층 앞 가장자리)
-    yb = D - t                        # 뒷판 앞면
-    # 단열재
-    A(_box("단열재(위)", xi0, xi1, yfront, yb, zt1 - ti, zt1, "ins", keys={"t_ins"}, tags={"ins"},
-           bom=("단열재 위", "ins", xi1 - xi0, yb - yfront, ti, "")))
-    A(_box("단열재(아래)", xi0, xi1, yfront, yb, zf, zf + ti, "ins", keys={"t_ins"}, tags={"ins"},
-           bom=("단열재 아래", "ins", xi1 - xi0, yb - yfront, ti, "")))
-    for nm, x0 in (("단열재(좌)", xi0), ("단열재(우)", xi1 - ti)):
-        A(_box(nm, x0, x0 + ti, yfront, yb, zf + ti, zt1 - ti, "ins", keys={"t_ins"}, tags={"ins"},
-               bom=("단열재 옆", "ins", zt1 - zf - 2 * ti, yb - yfront, ti, "")))
-    A(_box("단열재(뒤)", xi0 + ti, xi1 - ti, yb - ti, yb, zf + ti, zt1 - ti, "ins", keys={"t_ins"}, tags={"ins"},
-           bom=("단열재 뒤", "ins", xi1 - xi0 - 2 * ti, zt1 - zf - 2 * ti, ti, "")))
-    # 속판
-    a0, a1 = xi0 + ti, xi1 - ti
+    # --- 문틀 띠(원목): 단열층 앞 둘레, 문이 닿는 면
+    fk = {"frame_d", "gasket", "gasket_h"}
+    fd = p["frame_d"]
+    A(_box("문틀 띠(위)", t, W - t, yf, y0i, zt1 - s, zt1, "pine", keys=fk, tags={"frame"},
+           bom=("문틀 띠 위", "pine", W - 2 * t, fd, s, "")))
+    A(_box("문틀 띠(아래·문)", t + s, W - t - s, yf, y0i, d["rail0"], d["rail1"], "pine", keys=fk | {"door_h"}, tags={"frame"},
+           bom=("문틀 띠 문 아래", "pine", W - 2 * t - 2 * s, fd, 2 * s, "")))
+    A(_box("문틀 띠(바닥)", t + s, W - t - s, yf, y0i, zb1, zb1 + s, "pine", keys=fk, tags={"frame"},
+           bom=("문틀 띠 바닥", "pine", W - 2 * t - 2 * s, fd, s, "")))
+    for nm, x0 in (("문틀 띠(좌)", t), ("문틀 띠(우)", W - t - s)):
+        A(_box(nm, x0, x0 + s, yf, y0i, zb1, zt1 - s, "pine", keys=fk, tags={"frame"},
+               bom=("문틀 띠 옆", "pine", zt1 - s - zb1, fd, s, "")))
+
+    # --- 단열재 + 속판 (위·아래 전체 폭, 옆은 그 사이, 뒤·앞(아래)은 가장 안쪽)
+    a0, a1 = t + ti, W - t - ti
     b1 = yb - ti
-    A(_box("속판(위)", a0, a1, yfront, b1, zt1 - ti - tl, zt1 - ti, "cedar", keys={"t_in"}, tags={"lining"},
-           bom=("속판 위", "cedar", a1 - a0, b1 - yfront, tl, "")))
-    A(_box("속판(아래)", a0, a1, yfront, b1, zf + ti, zf + ti + tl, "cedar", keys={"t_in"}, tags={"lining"},
-           bom=("속판 아래", "cedar", a1 - a0, b1 - yfront, tl, "")))
+    A(_box("단열재(위)", t, W - t, y0i, yb, zt1 - ti, zt1, "ins", keys={"t_ins"}, tags={"ins"},
+           bom=("단열재 위", "ins", W - 2 * t, yb - y0i, ti, "")))
+    A(_box("단열재(아래)", t, W - t, y0i, yb, zb1, zb1 + ti, "ins", keys={"t_ins"}, tags={"ins"},
+           bom=("단열재 아래", "ins", W - 2 * t, yb - y0i, ti, "")))
+    for nm, x0 in (("단열재(좌)", t), ("단열재(우)", W - t - ti)):
+        A(_box(nm, x0, x0 + ti, y0i, yb, zb1 + ti, zt1 - ti, "ins", keys={"t_ins"}, tags={"ins"},
+               bom=("단열재 옆", "ins", zt1 - zb1 - 2 * ti, yb - y0i, ti, "")))
+    A(_box("단열재(뒤)", a0, a1, b1, yb, zb1 + ti, zt1 - ti, "ins", keys={"t_ins"}, tags={"ins"},
+           bom=("단열재 뒤", "ins", a1 - a0, zt1 - zb1 - 2 * ti, ti, "리셉터클 자리 40×50 따냄")))
+    A(_box("속판(위)", a0, a1, y0i, b1, zt1 - s, zt1 - ti, "cedar", keys={"t_in"}, tags={"lining"},
+           bom=("속판 위", "cedar", a1 - a0, b1 - y0i, tl, "")))
+    A(_box("속판(아래)", a0, a1, y0i, b1, zb1 + ti, zb1 + s, "cedar", keys={"t_in"}, tags={"lining"},
+           bom=("속판 아래", "cedar", a1 - a0, b1 - y0i, tl, "")))
     for nm, x0 in (("속판(좌)", a0), ("속판(우)", a1 - tl)):
-        A(_box(nm, x0, x0 + tl, yfront, b1, zf + ti + tl, zt1 - ti - tl, "cedar", keys={"t_in"}, tags={"lining"},
-               bom=("속판 옆", "cedar", zt1 - zf - 2 * (ti + tl), b1 - yfront, tl, "")))
-    A(_box("속판(뒤)", a0 + tl, a1 - tl, b1 - tl, b1, zf + ti + tl, zt1 - ti - tl, "cedar", keys={"t_in"}, tags={"lining"},
-           bom=("속판 뒤", "cedar", a1 - a0 - 2 * tl, zt1 - zf - 2 * (ti + tl), tl, "")))
+        A(_box(nm, x0, x0 + tl, y0i, b1, zb1 + s, zt1 - s, "cedar", keys={"t_in"}, tags={"lining"},
+               bom=("속판 옆", "cedar", zt1 - zb1 - 2 * s, b1 - y0i, tl, "")))
+    A(_box("속판(뒤)", a0 + tl, a1 - tl, b1 - tl, b1, zb1 + s, zt1 - s, "cedar", keys={"t_in"}, tags={"lining"},
+           bom=("속판 뒤", "cedar", a1 - a0 - 2 * tl, zt1 - zb1 - 2 * s, tl, "리셉터클 자리 40×50 따냄")))
+    # 아래 앞(고정판 뒤): 문틀 띠 사이, 바닥 띠 위 ~ 문 아래 띠 밑
+    lz0, lz1 = zb1 + s, d["rail0"]
+    A(_box("단열재(아래 앞)", t + s, W - t - s, y0i - s, y0i - tl, lz0, lz1, "ins", keys={"t_ins"}, tags={"ins", "lowfront"},
+           bom=("단열재 아래 앞", "ins", W - 2 * t - 2 * s, lz1 - lz0, ti, "온도조절기 자리 따냄")))
+    A(_box("속판(아래 앞)", t + s, W - t - s, y0i - tl, y0i, lz0, lz1, "cedar", keys={"t_in"}, tags={"lining", "lowfront"},
+           bom=("속판 아래 앞", "cedar", W - 2 * t - 2 * s, lz1 - lz0, tl, "온도조절기 자리 따냄")))
 
-    # --- 문받이 가스켓(단열층 앞 가장자리 둘레, 문 겉판 뒷면에 닿음)
-    gw, gh = p["gasket_w"], p["gasket_h"]
-    gc = (ti + tl) / 2
-    gy0, gy1 = td, yfront
-    A(_box("가스켓(위)", xi0, xi1, gy0, gy1, zt1 - gc - gw / 2, zt1 - gc + gw / 2, "gasket", tags={"gasket"},
-           keys={"gasket_w", "gasket_h"}))
-    A(_box("가스켓(아래)", xi0, xi1, gy0, gy1, zf + gc - gw / 2, zf + gc + gw / 2, "gasket", tags={"gasket"},
-           keys={"gasket_w", "gasket_h"}))
-    for x in (xi0 + gc, xi1 - gc):
-        A(_box("가스켓(옆)", x - gw / 2, x + gw / 2, gy0, gy1, zf, zt1, "gasket", tags={"gasket"},
-               keys={"gasket_w", "gasket_h"}))
+    # --- 가스켓(선택): 문틀 띠 앞면, 문 겉판 뒷면에 눌림
+    if gasket_on():
+        gw, gk = p["gasket_w"], d["gk"]
+        gkeys = {"gasket", "gasket_w", "gasket_h"}
+        A(_box("가스켓(위)", t, W - t, td, yf, zt1 - s / 2 - gw / 2, zt1 - s / 2 + gw / 2, "gasket", tags={"gasket"}, keys=gkeys))
+        A(_box("가스켓(아래)", t + s, W - t - s, td, yf, dz0 + s / 2 - gw / 2, dz0 + s / 2 + gw / 2, "gasket", tags={"gasket"}, keys=gkeys))
+        for x in (t + s / 2, W - t - s / 2):
+            A(_box("가스켓(옆)", x - gw / 2, x + gw / 2, td, yf, dz0, zt1, "gasket", tags={"gasket"}, keys=gkeys))
 
-    # --- 문(양문): 겉판 + 턱맞춤, 뒤에 단열 플러그(단열재 + 속판)
+    # --- 문(양문): 겉판 + 턱맞춤, 뒤에 단열 플러그
     r = p["rebate"]
-    dz0, dz1 = zd + g if d["ctl"] > 0 else zf + g, H - t - g
-    if d["ctl"] == 0:
-        dz0 = f + t + g
     hd = td / 2
-    dk = {"t_door", "gap", "rebate"}
-    # 왼문: 앞쪽 반은 xm-g/2까지, 뒤쪽 반은 xm+r까지(턱)
+    dk = {"t_door", "gap", "rebate", "door_h"}
     oL = [(t + g, 0), (xm - g / 2, 0), (xm - g / 2, hd), (xm + r, hd), (xm + r, td), (t + g, td)]
     oR = [(xm + g / 2, 0), (W - t - g, 0), (W - t - g, td), (xm + r + g, td), (xm + r + g, hd), (xm + g / 2, hd)]
-    A(_box("왼문 겉판", t + g, xm - g / 2, 0, hd, dz0, dz1, "pine", keys=dk, tags={"door", "doorL", "front", "noedge"}, oplan=oL))
-    A(_box("왼문 겉판(턱)", t + g, xm + r, hd, td, dz0, dz1, "pine", keys=dk, tags={"door", "doorL", "noedge"}))
-    A(_box("오른문 겉판", xm + g / 2, W - t - g, 0, hd, dz0, dz1, "pine", keys=dk, tags={"door", "doorR", "front", "noedge"}, oplan=oR))
-    A(_box("오른문 겉판(턱)", xm + r + g, W - t - g, hd, td, dz0, dz1, "pine", keys=dk, tags={"door", "doorR", "noedge"}))
-    A(_box("턱 가스켓", xm + g / 2, xm + r, hd - gh * 0.3, hd, dz0 + 20, dz1 - 20, "gasket", tags={"door", "gasket"},
-           keys={"rebate", "gasket_w"}))
-    dw_L = xm + r - (t + g)
-    dw_R = (W - t - g) - (xm + g / 2)
     doorh = dz1 - dz0
-    parts[-5]["bom"] = ("문 겉판(왼)", "pine", doorh, dw_L, td, f"오른쪽 끝 뒤쪽 반 턱 {r:g}×{hd:g}")
-    parts[-3]["bom"] = ("문 겉판(오른)", "pine", doorh, dw_R, td, f"왼쪽 끝 앞쪽 반 턱 {r:g}×{hd:g}")
-    parts[-5]["dev"] = rect(dw_L, doorh)
-    parts[-3]["dev"] = rect(dw_R, doorh)
+    dw_L, dw_R = xm + r - (t + g), (W - t - g) - (xm + g / 2)
+    A(_box("왼문 겉판", t + g, xm - g / 2, 0, hd, dz0, dz1, "pine", keys=dk, tags={"door", "doorL", "front", "noedge"}, oplan=oL,
+           bom=("문 겉판(왼)", "pine", doorh, dw_L, td, f"오른쪽 끝 뒤쪽 반 턱 {r:g}×{hd:g}"), dev=rect(dw_L, doorh)))
+    A(_box("왼문 겉판(턱)", t + g, xm + r, hd, td, dz0, dz1, "pine", keys=dk, tags={"door", "doorL", "noedge"}))
+    A(_box("오른문 겉판", xm + g / 2, W - t - g, 0, hd, dz0, dz1, "pine", keys=dk, tags={"door", "doorR", "front", "noedge"}, oplan=oR,
+           bom=("문 겉판(오른)", "pine", doorh, dw_R, td, f"왼쪽 끝 앞쪽 반 턱 {r:g}×{hd:g}"), dev=rect(dw_R, doorh)))
+    A(_box("오른문 겉판(턱)", xm + r + g, W - t - g, hd, td, dz0, dz1, "pine", keys=dk, tags={"door", "doorR", "noedge"}))
+    if gasket_on():
+        A(_box("턱 가스켓", xm + g / 2, xm + r, hd - d["gk"], hd, dz0 + 20, dz1 - 20, "gasket", tags={"door", "gasket"},
+               keys={"rebate", "gasket", "gasket_w"}))
     pg = p["plug_gap"]
-    pz0, pz1 = d["cz0"] + pg, d["cz1"] - pg
+    pz0, pz1 = d["rail1"] + pg, d["cz1"] - pg
     for side, x0, x1 in (("왼", d["cx0"] + pg, xm - pg), ("오른", xm + pg, d["cx1"] - pg)):
         tg = {"door", "doorL" if side == "왼" else "doorR", "plug"}
-        A(_box(f"{side}문 단열재", x0, x1, td, td + ti, pz0, pz1,
-               "ins", keys={"t_ins", "plug_gap"}, tags=tg,
+        A(_box(f"{side}문 단열재", x0, x1, td, td + ti, pz0, pz1, "ins", keys={"t_ins", "plug_gap"}, tags=tg,
                bom=("문 단열재", "ins", pz1 - pz0, x1 - x0, ti, "플러그")))
-        A(_box(f"{side}문 속판", x0, x1, td + ti, td + ti + tl, pz0, pz1, "cedar", keys={"t_in", "plug_gap"}, tags=tg,
+        A(_box(f"{side}문 속판", x0, x1, td + ti, td + s, pz0, pz1, "cedar", keys={"t_in", "plug_gap"}, tags=tg,
                bom=("문 속판", "cedar", pz1 - pz0, x1 - x0, tl, "플러그")))
+
+    # --- 자석 캐치(문틀 띠에 매립, 문 겉판 뒷면에 철판)
+    mz = [zt1 - s / 2]
+    if int(p["mag_n"]) >= 2:
+        mz.append(dz0 + s / 2)
+    md = p["mag_d"]
+    for zc in mz:
+        for sgn in (-1, 1):
+            xc = xm + sgn * p["mag_off"]
+            A(_box("자석 캐치", xc - md / 2, xc + md / 2, yf, yf + 6, zc - md / 2, zc + md / 2, "steel",
+                   keys={"mag_n", "mag_d", "mag_off"}, tags={"mag"}, shape="disc"))
+
+    # --- 선반(착탈, 통풍 슬롯) + 선반받이
+    zs0, zs1 = d["zs0"], d["zs1"]
+    sx0, sx1 = d["cx0"] + 2, d["cx1"] - 2
+    sy0, sy1 = y0i + 2, d["cy1"] - 2
+    sl = shelf_slots(sx1 - sx0, sy1 - sy0)
+    A(_box("선반", sx0, sx1, sy0, sy1, zs0, zs1, "pine", keys={"lower_h", "shelf_t", "vent_w", "vent_pitch"}, tags={"shelf"},
+           slots=[(sx0 + a, sy0 + b, w, h) for a, b, w, h in sl],
+           bom=("선반(착탈)", "pine", sx1 - sx0, sy1 - sy0, p["shelf_t"], f"통풍 슬롯 {p['vent_w']:g}×{sy1 - sy0 - 80:.0f} {len(sl)}개"),
+           dev=rect(sx1 - sx0, sy1 - sy0), dev_slots=sl))
+    cl = p["cleat"]
+    for nm, x0 in (("선반받이(좌)", d["cx0"]), ("선반받이(우)", d["cx1"] - cl)):
+        A(_box(nm, x0, x0 + cl, y0i, d["cy1"], zs0 - cl, zs0, "pine", keys={"lower_h", "cleat"}, tags={"cleat"},
+               bom=("선반받이", "pine", d["cy1"] - y0i, cl, cl, "옆속판에 나사")))
+
+    # --- 열원
+    if p["heat"] == "film":
+        fm_, fwmax = p["film_margin"], p["film_w"]
+        fl = []
+
+        def film(nm, a, b):
+            wa, wb = a - 2 * fm_, b - 2 * fm_
+            if wa <= 0 or wb <= 0:
+                return None
+            c1, c2 = (min(wa, fwmax), wb), (min(wb, fwmax), wa)
+            w1, l1 = max(c1, c2, key=lambda c: c[0] * c[1])
+            return (nm, w1, l1)
+        fc = faces()
+        e = 1.0
+        fkey = {"film_w", "film_margin", "film_faces", "heat"}
+        if "뒤" in fc:
+            fl.append(film("뒤", a1 - a0 - 2 * tl, zt1 - zb1 - 2 * s))
+            A(_box("필름(뒤)", a0 + tl + fm_, a1 - tl - fm_, b1 - e, b1, zb1 + s + fm_, zt1 - s - fm_, "film", tags={"film"}, keys=fkey))
+        if "위" in fc:
+            fl.append(film("위", a1 - a0, b1 - y0i))
+            A(_box("필름(위)", a0 + fm_, a1 - fm_, y0i + fm_, b1 - fm_, zt1 - ti - e, zt1 - ti, "film", tags={"film"}, keys=fkey))
+        if "아래" in fc:
+            fl.append(film("아래", a1 - a0, b1 - y0i))
+            A(_box("필름(아래)", a0 + fm_, a1 - fm_, y0i + fm_, b1 - fm_, zb1 + ti, zb1 + ti + e, "film", tags={"film"}, keys=fkey))
+        for nm, x in (("좌", a0), ("우", a1 - e)):
+            if nm in fc:
+                fl.append(film(nm, b1 - y0i, zt1 - zb1 - 2 * s))
+                A(_box(f"필름({nm})", x, x + e, y0i + fm_, b1 - fm_, zb1 + s + fm_, zt1 - s - fm_, "film", tags={"film"}, keys=fkey))
+        d["films"] = [x for x in fl if x]
+        d["power"] = sum(w * l for _, w, l in d["films"]) / 1e6 * p["film_wpm2"]
+    else:
+        pw, pdp, ph = p["ptc_w"], p["ptc_d"], p["ptc_h"]
+        yc = (y0i + d["cy1"]) / 2
+        A(_box("PTC 히터", xm - pw / 2, xm + pw / 2, yc - pdp / 2, yc + pdp / 2, d["cz0"], d["cz0"] + ph, "ptc",
+               tags={"ptc"}, keys={"ptc_w", "ptc_d", "ptc_h", "ptc_watt", "heat"}))
+        d["films"] = []
+        d["power"] = p["ptc_watt"]
+
+    # --- 거치대: 뒷속판 → 문 안쪽 면 rack_front 앞까지
+    rt, L, yb_in = d["rack_top"], d["rack_len"], d["cy1"]
+    rk = {"rack", "rack_drop", "rack_gap", "rack_back", "rack_front", "rack_r", "n_bows", "bow_pitch"}
+    if p["rack"] == "1":
+        prof = rack1_profile(L)
+        for sgn in (-1, 1):
+            xc = xm + sgn * p["rack_gap"] / 2
+            A(_box("삼각 받침", xc - p["r1_w"] / 2, xc + p["r1_w"] / 2, yb_in - L, yb_in, rt - p["r1_h"], rt + p["r1_lip"],
+                   "ply", keys=rk | {"r1_w", "r1_h", "r1_tip", "r1_lip"}, tags={"rack"},
+                   prof=[(yb_in - u, rt - p["r1_h"] + v) for u, v in prof], round_top=True,
+                   bom=("삼각 받침", "ply", L, p["r1_h"] + p["r1_lip"], p["r1_w"], f"윗면 모서리 R{p['rack_r']:g}, 형판: 상세도"),
+                   dev=[(u, v) for u, v in prof]))
+        d["supports"] = [(-p["rack_gap"] / 2, rt), (p["rack_gap"] / 2, rt)]
+    elif p["rack"] == "2":
+        dd = p["r2_d"]
+        emb = tl + ti + 12
+        for sgn in (-1, 1):
+            xc = xm + sgn * p["rack_gap"] / 2
+            A(_box("둥근 막대", xc - dd / 2, xc + dd / 2, yb_in - L, yb_in + emb, rt - dd, rt, "ply",
+                   keys=rk | {"r2_d"}, tags={"rack"}, shape="cyl",
+                   bom=("둥근 막대", "ply", L + emb, dd, dd, f"Ø{dd:g}, 끝 R{min(p['rack_r'], dd / 2):g}, 뒷판 12 박음")))
+        d["supports"] = [(-p["rack_gap"] / 2, rt), (p["rack_gap"] / 2, rt)]
+    else:
+        a, cw, chh = p["r3_arm"], p["r3_cap_w"], p["r3_cap_h"]
+        A(_box("줌걸이 각재", xm - a / 2, xm + a / 2, yb_in - L, yb_in, rt - chh - a, rt - chh, "ply",
+               keys=rk | {"r3_arm"}, tags={"rack"}, bom=("줌걸이 각재", "ply", L, a, a, "뒷판까지 볼트")))
+        A(_box("줌 받침", xm - cw / 2, xm + cw / 2, yb_in - L, yb_in - p["rack_back"] + 5, rt - chh, rt, "ply",
+               keys=rk | {"r3_cap_w", "r3_cap_h"}, tags={"rack"}, round_top=True,
+               bom=("줌 받침", "ply", L - p["rack_back"] + 5, cw, chh, f"윗면 R{p['rack_r']:g}")))
+        d["supports"] = [(0.0, rt)]
 
     # --- 철물(정면 표시용)
     hw = []
@@ -299,75 +432,6 @@ def build():
         for x in (t, W - t):
             hw.append(("경첩", x, zc))
     d["hardware"] = hw
-    d["door_z"] = (dz0, dz1)
-
-    # --- 열원
-    if p["heat"] == "film":
-        fm_, fwmax = p["film_margin"], p["film_w"]
-        fl = []
-        def film(nm, a, b):
-            # a: 가로(폭 방향 후보), b: 세로 → 폭은 film_w 이하
-            wa, wb = a - 2 * fm_, b - 2 * fm_
-            if wa <= 0 or wb <= 0:
-                return None
-            c1 = (min(wa, fwmax), wb)
-            c2 = (min(wb, fwmax), wa)
-            w1, l1 = max(c1, c2, key=lambda c: c[0] * c[1])
-            return (nm, w1, l1)
-        fc = faces()
-        e = 1.0
-        if "뒤" in fc:
-            fl.append(film("뒤", a1 - a0 - 2 * tl, zt1 - zf - 2 * (ti + tl)))
-            A(_box("필름(뒤)", a0 + tl + fm_, a1 - tl - fm_, b1 - e, b1, zf + ti + tl + fm_, zt1 - ti - tl - fm_, "film", tags={"film"}, keys={"film_w", "film_margin", "film_faces"}))
-        if "위" in fc:
-            fl.append(film("위", a1 - a0, b1 - yfront))
-            A(_box("필름(위)", a0 + fm_, a1 - fm_, yfront + fm_, b1 - fm_, zt1 - ti - e, zt1 - ti, "film", tags={"film"}, keys={"film_w", "film_margin", "film_faces"}))
-        if "아래" in fc:
-            fl.append(film("아래", a1 - a0, b1 - yfront))
-            A(_box("필름(아래)", a0 + fm_, a1 - fm_, yfront + fm_, b1 - fm_, zf + ti, zf + ti + e, "film", tags={"film"}, keys={"film_w", "film_margin", "film_faces"}))
-        for nm, x in (("좌", a0), ("우", a1 - e)):
-            if nm in fc:
-                fl.append(film(nm, b1 - yfront, zt1 - zf - 2 * (ti + tl)))
-                A(_box(f"필름({nm})", x, x + e, yfront + fm_, b1 - fm_, zf + ti + tl + fm_, zt1 - ti - tl - fm_, "film", tags={"film"}, keys={"film_w", "film_margin", "film_faces"}))
-        d["films"] = [x for x in fl if x]
-        d["power"] = sum(w * l for _, w, l in d["films"]) / 1e6 * p["film_wpm2"]
-    else:
-        bd, bh = p["bulb_d"], p["bulb_h"]
-        yc = (d["cy0"] + d["cy1"]) / 2
-        A(_box("적외선 전구", xm - bd / 2, xm + bd / 2, yc - bd / 2, yc + bd / 2, d["cz0"], d["cz0"] + bh, "bulb",
-               tags={"bulb"}, keys={"bulb_d", "bulb_h", "bulb_watt"}, shape="bulb"))
-        d["films"] = []
-        d["power"] = p["bulb_watt"]
-
-    # --- 거치대
-    rt, L, yb_in = d["rack_top"], d["rack_len"], d["cy1"]
-    rk = {"rack", "rack_drop", "rack_gap", "rack_back", "n_bows", "bow_pitch"}
-    if p["rack"] == "1":
-        prof = rack1_profile(L)
-        for sgn in (-1, 1):
-            xc = xm + sgn * p["rack_gap"] / 2
-            A(_box("삼각 받침", xc - p["r1_w"] / 2, xc + p["r1_w"] / 2, yb_in - L, yb_in, rt - p["r1_h"], rt + p["r1_lip"],
-                   "ply", keys=rk | {"r1_w", "r1_h", "r1_tip", "r1_lip"}, tags={"rack"},
-                   prof=[(yb_in - u, rt - p["r1_h"] + v) for u, v in prof],
-                   bom=("삼각 받침", "ply", L, p["r1_h"] + p["r1_lip"], p["r1_w"], "형판: 상세도 1:1"),
-                   dev=[(u, v) for u, v in prof]))
-        d["supports"] = [(-p["rack_gap"] / 2, rt), (p["rack_gap"] / 2, rt)]
-    elif p["rack"] == "2":
-        dd = p["r2_d"]
-        for sgn in (-1, 1):
-            xc = xm + sgn * p["rack_gap"] / 2
-            ins_ = tl + ti + 12
-            A(_box("둥근 막대", xc - dd / 2, xc + dd / 2, yb_in - L, yb_in + ins_, rt - dd, rt, "ply",
-                   keys=rk | {"r2_d"}, tags={"rack"}, shape="cyl",
-                   bom=("둥근 막대", "ply", L + ins_, dd, dd, f"Ø{dd:g}, 속판·단열재 관통 + 뒷판 12 박음")))
-        d["supports"] = [(-p["rack_gap"] / 2, rt), (p["rack_gap"] / 2, rt)]
-    else:
-        a, cw, chh = p["r3_arm"], p["r3_cap_w"], p["r3_cap_h"]
-        A(_box("줌걸이 각재", xm - a / 2, xm + a / 2, yb_in - L, yb_in, rt - chh - a, rt - chh, "ply",
-               keys=rk | {"r3_arm"}, tags={"rack"}, bom=("줌걸이 각재", "ply", L, a, a, "뒷판까지 볼트")))
-        A(_box("줌 받침", xm - cw / 2, xm + cw / 2, yb_in - L, yb_in - p["rack_back"] + 5, rt - chh, rt, "ply",
-               keys=rk | {"r3_cap_w", "r3_cap_h"}, tags={"rack"}, bom=("줌 받침", "ply", L - p["rack_back"] + 5, cw, chh, "윗면 R 다듬기")))
-        d["supports"] = [(0.0, rt)]
     return parts, d
 
 
@@ -385,26 +449,22 @@ def rack1_profile(L):
 
 # ---------------------------------------------------------------- 부린활 형상
 def bow_curves(d, state):
-    """state: open(벌어짐) / closed(오므라짐). 반환: [(외곽 x,z), (안쪽 x,z)], 맨 위(외곽) z"""
+    """state: open(벌어짐) / closed(오므라짐). 반환: (외곽 x,z), (안쪽 x,z), 맨 위(외곽) z"""
     p = P()
     lb = p["bow_limb"]
     if state == "open":
         a, h = p["bow_open_span"] / 2, p["bow_open_h"]
         phi = np.linspace(-math.pi / 2, math.pi / 2, 181)
-        fx = lambda a_, ph: a_ * np.sin(ph)
-        fz = lambda h_, ph: h_ * (1 - np.cos(ph))
     else:
         a, h = p["bow_ring_w"] / 2, p["bow_ring_h"] / 2
         lim = math.pi - math.radians(25)
         phi = np.linspace(-lim, lim, 241)
-        fx = lambda a_, ph: a_ * np.sin(ph)
-        fz = lambda h_, ph: h_ * (1 - np.cos(ph))
+    fx = lambda a_, ph: a_ * np.sin(ph)
+    fz = lambda h_, ph: h_ * (1 - np.cos(ph))
     ai, hi = a - lb, h - lb / (1 if state == "open" else 2)
-    # 받침점에서 안쪽 곡선이 닿도록 맨 위 높이 결정
     ztop_in = -1e9
     for xs, zs in d["supports"]:
-        s_ = min(abs(xs) / max(ai, 1), 1.0)
-        ph = math.asin(s_)
+        ph = math.asin(min(abs(xs) / max(ai, 1), 1.0))
         ztop_in = max(ztop_in, zs + fz(hi, ph))
     zt = ztop_in + lb
     xo, zo = d["xm"] + fx(a, phi), zt - fz(h, phi)
@@ -421,18 +481,11 @@ def checks(parts, d):
         (xo, zo), _, zt = bow_curves(d, st)
         res.append((f"{nm} 좌우 여유", min(xo.min() - d["cx0"], d["cx1"] - xo.max()), c))
         res.append((f"{nm} 위 여유", d["cz1"] - zt, c))
-        low = d["cz0"]
-        bot = zo.min() - low
-        if p["heat"] == "bulb":
-            bd = p["bulb_d"] / 2 + c
-            m = np.abs(xo - d["xm"]) < bd
-            if m.any():
-                bot = min(bot, zo[m].min() - (d["cz0"] + p["bulb_h"]))
-        res.append((f"{nm} 아래 여유", bot, c))
+        res.append((f"{nm} 아래 여유(선반 위)", zo.min() - d["zs1"], c))
     n = int(p["n_bows"])
-    front = d["cy1"] - p["rack_back"] - n * p["bow_pitch"]
-    res.append((f"앞쪽 여유 (활 {n}장)", front - d["cy0"], c))
-    res.append(("거치대 높이(받침 아래 공간)", d["rack_top"] - d["cz0"], 100.0))
+    need = p["rack_back"] + n * p["bow_pitch"] + (p["r1_lip"] if p["rack"] == "1" else 10.0)
+    res.append((f"거치대 남는 길이 (활 {n}장)", d["rack_len"] - need, 0.0))
+    res.append(("문 열린 높이 − 벌어진 활 높이", d["open_h"] - p["bow_open_h"], 0.0))
     return [(a, b, cc, b >= cc - 1e-6) for a, b, cc in res]
 
 
@@ -514,28 +567,40 @@ def proj(part, view):
     return [(x0, -y0), (x1, -y0), (x1, -y1), (x0, -y1)]   # plan: y 아래로
 
 
+def _round_rect(x0, z0, w, h, R):
+    """윗모서리 둥근 사각형(단면)"""
+    R = min(R, w / 2, h)
+    pts = [(x0, z0), (x0 + w, z0), (x0 + w, z0 + h - R)]
+    pts += [(x0 + w - R + R * math.cos(a), z0 + h - R + R * math.sin(a)) for a in np.linspace(0, math.pi / 2, 8)]
+    pts += [(x0 + R + R * math.cos(a), z0 + h - R + R * math.sin(a)) for a in np.linspace(math.pi / 2, math.pi, 8)]
+    return pts
+
+
+def draw_holes(ax, q, ls="-", fc="#333"):
+    for kind, xc, zc, w, h in q.get("holes", []):
+        ax.add_patch(Rectangle((xc - w / 2, zc - h / 2), w, h, fc=fc, ec="k", lw=0.4, zorder=6, ls=ls))
+        if kind == "recp":
+            p = P()
+            for sgn in (-1, 1):
+                ax.add_patch(Circle((xc + sgn * p["recp_pitch"] / 2, zc), p["recp_hole"] / 2, fc=fc, ec="k", lw=0.3, zorder=6, ls=ls))
+
+
 def draw_front(ax, parts, d, opened):
-    """정면도. opened=True면 문을 떼어낸 내부 모습"""
-    sel = [q for q in parts if not (opened and "door" in q["tags"])]
-    if not opened:   # 문 닫힘: 겉에서 보이는 겉판·문·발만
-        sel = [q for q in sel if q["mat"] == "pine" and "rack" not in q["tags"]]
+    """정면도. opened=True면 문을 떼어낸 내부 모습(아래 앞판은 비침)"""
+    p = P()
+    if opened:
+        sel = [q for q in parts if "door" not in q["tags"] and "lowfront" not in q["tags"]]
+    else:   # 문 닫힘: 겉에서 보이는 겉판·문·발만
+        sel = [q for q in parts if q["mat"] == "pine" and q["tags"] & {"shell", "door", "foot"} and "back" not in q["tags"]]
     for q in sorted(sel, key=lambda q: -q["b"][2]):
-        if q["mat"] == "gasket" and not opened:
-            continue
+        x0, x1, _, _, z0, z1 = q["b"]
         if q.get("shape") == "cyl":
-            x0, x1, _, _, z0, z1 = q["b"]
             ax.add_patch(Circle(((x0 + x1) / 2, (z0 + z1) / 2), (x1 - x0) / 2, fc=MAT[q["mat"]][1], ec="k", lw=0.5, zorder=3))
             continue
-        if q.get("shape") == "bulb":
-            x0, x1, _, _, z0, z1 = q["b"]
-            xc, r = (x0 + x1) / 2, (x1 - x0) / 2
-            ax.add_patch(Rectangle((xc - 25, z0), 50, 60, fc="#bbbbbb", ec="k", lw=0.4, zorder=3))
-            th = np.linspace(0, math.pi, 30)
-            pts = [(xc - r, z1 - r * 0.8)] + [(xc + r * math.cos(a), z1 - r * 0.8 + r * 0.8 * math.sin(a)) for a in th[::-1]] + [(xc + r, z1 - r * 0.8), (xc + 22, z0 + 60), (xc - 22, z0 + 60)]
-            ax.add_patch(Polygon(pts, fc=MAT["bulb"][1], ec="k", lw=0.4, zorder=3))
+        if q.get("shape") == "disc":
+            ax.add_patch(Circle(((x0 + x1) / 2, (z0 + z1) / 2), (x1 - x0) / 2, fc=MAT["steel"][1], ec="k", lw=0.3, zorder=5))
             continue
         if q["mat"] == "film":
-            x0, x1, _, _, z0, z1 = q["b"]
             if x1 - x0 < 3:
                 ax.plot([x0, x0], [z0, z1], color=MAT["film"][1], lw=1.2, zorder=4)
             elif z1 - z0 < 3:
@@ -543,19 +608,32 @@ def draw_front(ax, parts, d, opened):
             else:
                 ax.add_patch(Polygon(proj(q, "front"), fc="none", ec=MAT["film"][1], lw=0.8, ls="--", zorder=2.5))
             continue
+        if q.get("round_top"):
+            ax.add_patch(Polygon(_round_rect(x0, z0, x1 - x0, z1 - z0, p["rack_r"]), fc=MAT[q["mat"]][1], ec="k", lw=0.5, zorder=3))
+            continue
+        if opened and "front" in q["tags"]:          # 아래 앞판: 비치게
+            ax.add_patch(Polygon(proj(q, "front"), fc=MAT[q["mat"]][1], ec="k", lw=0.5, zorder=5, alpha=0.35))
+            draw_holes(ax, q, fc="none")
+            continue
+        if "shelf" in q["tags"]:
+            ax.add_patch(Polygon(proj(q, "front"), fc=MAT[q["mat"]][1], ec="k", lw=0.5, zorder=3))
+            continue
         _poly(ax, proj(q, "front"), q["mat"], lw=0.5, z=2)
-        for _, xc, w, h in q.get("holes", []):
-            zc = (q["b"][4] + q["b"][5]) / 2
-            ax.add_patch(Rectangle((xc - w / 2, zc - h / 2), w, h, fc="#333", ec="k", lw=0.4, zorder=3))
-    if not opened:
-        p = P()
-        # 경첩·손잡이·귀장석
+        if not opened:
+            draw_holes(ax, q)
+    if opened:
+        for q in parts:
+            if "back" in q["tags"]:
+                draw_holes(ax, q, ls="--", fc="none")
+    else:
+        for q in parts:
+            if "back" in q["tags"]:
+                draw_holes(ax, q, ls=":", fc="none")
         for _, x, zc in d["hardware"]:
-            ax.add_patch(Rectangle((x - 22, zc - 45), 44, 90, fc=MAT["steel"][1], ec="k", lw=0.3, zorder=5, alpha=0.9))
-        xm = d["xm"]; dz0, dz1 = d["door_z"]
+            ax.add_patch(Rectangle((x - 22, zc - 40), 44, 80, fc=MAT["steel"][1], ec="k", lw=0.3, zorder=5, alpha=0.9))
+        xm = d["xm"]
+        dz0, dz1 = d["door_z"]
         zc = (dz0 + dz1) / 2
-        ax.add_patch(Rectangle((xm - 55, dz1 - 150), 110, 130, fc=MAT["steel"][1], ec="k", lw=0.3, zorder=5, alpha=0.9))
-        ax.text(xm, dz1 - 85, "앞바탕", color="w", fontsize=4, ha="center", va="center", zorder=6)
         for sgn in (-1, 1):
             ax.add_patch(Rectangle((xm + sgn * 40 - 6, zc - 50), 12, 100, fc="#6b4b2a", ec="k", lw=0.3, zorder=5))
         W, H = p["W"], p["H"]
@@ -671,6 +749,8 @@ def sheet_assembly(pdf, parts, d):
     dz0, dz1 = d["door_z"]
     dim(a1, (W, 0), (W, dz0), -6, f"{dz0:.0f}")
     dim(a1, (W, dz0), (W, dz1), -6, f"문 {dz1 - dz0:.0f}")
+    tx, tz, tw, th = d["thermo"]
+    dim(a1, (tx - tw / 2, tz - th / 2), (tx + tw / 2, tz - th / 2), -3, f"{tw:g}×{th:g}", fs=5)
     ax0.text(gx + m / s, y_front + (H + m * 0.6) / s + 11, "정면도 (문 닫힘)", fontsize=8, weight="bold")
     # 정면도(문 열림)
     gx2 = gx + (W + 2 * m) / s + 6
@@ -678,7 +758,8 @@ def sheet_assembly(pdf, parts, d):
     draw_front(a2, parts, d, True)
     draw_bows(a2, d, "front")
     dim(a2, (d["cx0"], d["cz1"]), (d["cx1"], d["cz1"]), 4, f"안 {d['cw']:.0f}")
-    dim(a2, (d["cx0"], d["cz0"]), (d["cx0"], d["cz1"]), 4, f"안 {d['ch']:.0f}")
+    dim(a2, (d["cx0"], d["zs1"]), (d["cx0"], d["cz1"]), 4, f"활 칸 {d['ch']:.0f}")
+    dim(a2, (d["cx0"], d["cz0"]), (d["cx0"], d["zs0"]), 4, f"하부 {p['lower_h']:g}", fs=5)
     dim(a2, (d["cx1"], d["rack_top"]), (d["cx1"], d["cz1"]), -4, f"{p['rack_drop']:g}")
     if p["rack"] in ("1", "2"):
         dim(a2, (d["xm"] - p["rack_gap"] / 2, d["rack_top"]), (d["xm"] + p["rack_gap"] / 2, d["rack_top"]), 3, f"{p['rack_gap']:g}", fs=5)
@@ -690,7 +771,8 @@ def sheet_assembly(pdf, parts, d):
     draw_side(a3, parts, d, xc)
     draw_bows(a3, d, "side")
     dim(a3, (0, H), (D, H), 6, f"{D:g}")
-    dim(a3, (d["cy0"], d["cz0"]), (d["cy1"], d["cz0"]), -3, f"안 {d['cd']:.0f}", fs=5)
+    dim(a3, (d["cy1"] - d["rack_len"], d["rack_top"] + 30), (d["cy1"], d["rack_top"] + 30), 2, f"{d['rack_len']:.0f}", fs=5)
+    dim(a3, (d["cy0"], d["zs1"]), (d["cy1"], d["zs1"]), -2, f"안 {d['cd']:.0f}", fs=5)
     ax0.text(gx3 + m / s, y_front + (H + m * 0.6) / s + 11, "측단면도 A-A", fontsize=8, weight="bold")
     # 평단면도
     zc = d["rack_top"] - (p["r1_h"] / 2 if p["rack"] == "1" else 10)
@@ -705,15 +787,30 @@ def sheet_assembly(pdf, parts, d):
     a1.text(xc, H + m * 0.25, "A", fontsize=6, ha="center")
     a1.plot([-m * 0.5, W + m * 0.5], [zc, zc], lw=0.4, ls=(0, (8, 3, 1, 3)), color="k")
     a1.text(-m * 0.55, zc, "B", fontsize=6, ha="right", va="center")
+    # 배면도(뒤에서 봄: 좌우 반대)
+    a5 = view_axes(fig, gx2, yp - (H - D) / s, (-m, W + m), (-m * 0.6, H + m * 0.4), s)
+    a5.add_patch(Rectangle((0, p["foot_h"]), W, H - p["foot_h"], fc=MAT["pine"][1], ec="k", lw=0.6))
+    a5.add_patch(Rectangle((p["t"], d["zb1"]), W - 2 * p["t"], d["zt1"] - d["zb1"], fill=False, ec="k", lw=0.4))
+    for x_ in (10, W - 10 - p["foot_w"]):
+        a5.add_patch(Rectangle((x_, 0), p["foot_w"], p["foot_h"], fc=MAT["pine"][1], ec="k", lw=0.5))
+    rx, rz, rw, rh = d["recp"]
+    rxb = W - rx
+    a5.add_patch(Rectangle((rxb - rw / 2, rz - rh / 2), rw, rh, fc="#333", ec="k", lw=0.4))
+    for sg in (-1, 1):
+        a5.add_patch(Circle((rxb + sg * p["recp_pitch"] / 2, rz), max(p["recp_hole"], 6) / 2, fc="#333", ec="k", lw=0.3))
+    near = W if rxb > W / 2 else 0
+    dim(a5, (min(near, rxb), rz + 60), (max(near, rxb), rz + 60), 1, f"{abs(near - rxb):.0f}", fs=5)
+    dim(a5, (rxb + 40, 0), (rxb + 40, rz), -1 if rxb > W / 2 else 1, f"{rz:.0f}", fs=5)
+    ax0.text(gx2 + m / s, yp - (H - D) / s + (H + m * 0.6) / s + 3, "배면도 (전원 리셉터클)", fontsize=8, weight="bold")
     # 검사 결과
     res = checks(parts, d)
-    x, y = gx2 + 4, yp + (D + 2 * m) / s - 4
+    x, y = gx3 - 2, yp + (D + 2 * m) / s - 4
     ax0.text(x, y, "여유 검사", fontsize=7.5, weight="bold")
     for i, (nm, v, c, ok) in enumerate(res):
         ax0.text(x, y - 4.2 * (i + 1), f"{'○' if ok else '×'} {nm}: {v:.0f} mm (기준 ≥ {c:g})", fontsize=6,
                  color="k" if ok else "#c00000")
     legend(ax0, 22, 40)
-    ax0.text(22, 48, f"열원: {'면상필름 ' + ', '.join(faces()) if p['heat'] == 'film' else '적외선 전구'}  ·  "
+    ax0.text(22, 48, f"열원: {'면상필름 ' + ', '.join(faces()) if p['heat'] == 'film' else 'PTC 히터(하부 바닥)'}  ·  "
              f"약 {d['power']:.0f} W  ·  설정 {p['set_temp']:g} ℃", fontsize=6.5)
     pdf.savefig(fig); plt.close(fig)
 
@@ -731,14 +828,15 @@ def sheet_parts(pdf, parts, d):
             continue
         seen.add(key)
         qty = sum(1 for r in parts if r.get("bom") and (r["bom"][0], round(r["bom"][2]), round(r["bom"][3])) == key)
-        items.append((b, q["dev"], qty))
+        items.append((b, q["dev"], qty, q))
     # 큰 판 → 축척 10 기준 배치
     big = [it for it in items if it[0][1] == "pine"]
+    big.sort(key=lambda it: -np.array(it[1])[:, 1].max())
     s = pick_scale(max(max(np.array(it[1])[:, 0].max() for it in big), 1), 1, 120, 1e9)
     s = max(s, 10)
-    fig, ax0 = new_sheet("부재도", "몸체 겉판·문 겉판 전개 (사개 손 포함)", 2, 5, f"1:{s}")
+    fig, ax0 = new_sheet("부재도", "겉판·문·선반 전개 (사개 손·타공·통풍 슬롯 포함)", 2, 5, f"1:{s}")
     x, y, rowh = 20, 278, 0
-    for b, dev, qty in big:
+    for b, dev, qty, q in big:
         pts = np.array(dev, float)
         w, h = pts[:, 0].max() - pts[:, 0].min(), pts[:, 1].max() - pts[:, 1].min()
         # 길이 방향을 가로로
@@ -748,6 +846,15 @@ def sheet_parts(pdf, parts, d):
             rowh = 0
         a = view_axes(fig, x, y - ph - 6, (pts[:, 0].min() - 10, pts[:, 0].max() + 10), (pts[:, 1].min() - 10, pts[:, 1].max() + 10), s)
         a.add_patch(Polygon(pts, fc=MAT["pine"][1], ec="k", lw=0.6))
+        for kind, hx, hz, hw_, hh_ in q.get("dev_holes", []):
+            a.add_patch(Rectangle((hx - hw_ / 2, hz - hh_ / 2), hw_, hh_, fc="w", ec="k", lw=0.4))
+            if kind == "recp":
+                for sg in (-1, 1):
+                    a.add_patch(Circle((hx + sg * p["recp_pitch"] / 2, hz), max(p["recp_hole"], 5) / 2, fc="w", ec="k", lw=0.3))
+            dim(a, (0, hz), (hx - hw_ / 2, hz), 2, f"{hx - hw_ / 2:.0f}", fs=4.5)
+            dim(a, (hx + hw_ / 2 + 4, 0), (hx + hw_ / 2 + 4, hz - hh_ / 2), -1.5, f"{hz - hh_ / 2:.0f}", fs=4.5)
+        for sx_, sy_, sw_, sh_ in q.get("dev_slots", []):
+            a.add_patch(Rectangle((sx_, sy_), sw_, sh_, fc="w", ec="k", lw=0.3))
         dim(a, (0, h), (w, h), 3, f"{w:.0f}", fs=5.5)
         dim(a, (0, 0), (0, h), 3, f"{h:.0f}", fs=5.5)
         ax0.text(x, y + 0.5, f"{b[0]}  ×{qty}  (t{b[4]:g})", fontsize=6.5, weight="bold")
@@ -759,8 +866,9 @@ def sheet_parts(pdf, parts, d):
     bn = pins(p["D"], p["pin_pitch"])
     ax0.text(20, 52, f"사개: 깊이 {p['D']:g} 을 {len(bn) - 1}구간(손 간격 {bn[1]:.1f})으로 나눔. 천판·지판은 짝수 구간(앞뒤 끝 포함)이 손, "
              f"옆판은 홀수 구간이 손. 손 길이 = 겉판 두께 {p['t']:g}.", fontsize=6)
-    ax0.text(20, 46, f"뒷판·중간판은 옆판·천판·지판 안쪽에 홈({p['dado']:g}) 파서 끼움 — 재단표 치수에 홈 깊이 포함.", fontsize=6)
-    ax0.text(20, 40, "문 겉판: 왼문 오른쪽 끝 뒤쪽 반, 오른문 왼쪽 끝 앞쪽 반을 턱으로 깎아 겹침(턱맞춤) — 상세도 참조.", fontsize=6)
+    ax0.text(20, 46, f"뒷판·아래 앞판은 옆판·천판·지판 안쪽에 홈({p['dado']:g}) 파서 끼움 — 재단표 치수에 홈 깊이 포함. 타공 위치는 앞(안쪽)에서 본 치수.", fontsize=6)
+    ax0.text(20, 40, "문 겉판: 왼문 오른쪽 끝 뒤쪽 반, 오른문 왼쪽 끝 앞쪽 반을 턱으로 깎아 겹침(턱맞춤) — 상세도 참조.  "
+             f"선반: 선반받이({p['cleat']:g}각) 위에 얹기만 함(착탈), 통풍 슬롯 폭 {p['vent_w']:g} 간격 {p['vent_pitch']:g}.", fontsize=6)
     pdf.savefig(fig); plt.close(fig)
 
 
@@ -794,7 +902,7 @@ def sheet_rack(pdf, parts, d, no, total):
             u0 = p["rack_back"] + p["bow_pitch"] * k
             a.add_patch(Rectangle((u0, p["r1_h"]), p["bow_pitch"], 6, fill=False, ec="#1f5fbf", lw=0.4))
             a.text(u0 + p["bow_pitch"] / 2, p["r1_h"] + 9, f"활{k + 1}", fontsize=5, ha="center", color="#1f5fbf")
-        a.text(-16, p["r1_h"] / 2 + 30, "뒷속판 쪽", rotation=90, fontsize=6, ha="center", va="center")
+        a.text(-14, p["r1_h"] + 20, "뒷속판 쪽", rotation=90, fontsize=6, ha="center", va="center")
         a.text(L * 0.35, p["r1_h"] * 0.55, f"두께(폭) {p['r1_w']:g} 집성목\n뒷면 나사 2개로 뒷판까지 고정\n결 방향: 길이 방향", fontsize=6.5, ha="center")
     elif kind == "2":
         a = view_axes(fig, x0, y0, (-20, L + 40), (-40, hh + 40), s)
@@ -818,7 +926,22 @@ def sheet_rack(pdf, parts, d, no, total):
         dim(a, (0, 0), (0, chh), 12, f"{chh:g}")
         a.text(L / 2, -aa - 20, f"받침 폭 {cw:g}, 윗면 줌통이 앉도록 둥글게. 각재는 뒷판까지 볼트 2개", fontsize=6.5, ha="center")
     ax0.text(x0, y0 + (hh + 80) / s + 14, f"거치대 {name} 옆모습", fontsize=9, weight="bold")
-    ax0.text(x0, 100, f"• 활 {int(p['n_bows'])}장 × {p['bow_pitch']:g} (궁대 포함) + 뒤 여유 {p['rack_back']:g} → 길이 {d['rack_len']:.0f}", fontsize=7)
+    # 단면(활 닿는 부분 라운드)
+    R = p["rack_r"]
+    if kind in ("1", "3"):
+        cw_ = p["r1_w"] if kind == "1" else p["r3_cap_w"]
+        ch_ = 50.0 if kind == "1" else p["r3_cap_h"]
+        sx, sy = 330, 40
+        b = view_axes(fig, sx, sy, (-20, cw_ + 30), (-20, ch_ + 30), 1)
+        b.add_patch(Polygon(_round_rect(0, 0, cw_, ch_, R), fc=MAT["ply"][1], ec="k", lw=0.7))
+        if kind == "1":
+            b.plot([0, cw_], [0, 0], color="w", lw=2)
+            b.text(cw_ / 2, 8, "(아래 생략)", fontsize=5, ha="center")
+        dim(b, (0, ch_), (cw_, ch_), 6, f"{cw_:g}", fs=5.5)
+        b.text(cw_ + 4, ch_ - R / 2, f"R{R:g}", fontsize=6)
+        ax0.text(sx, sy + (ch_ + 50) + 2, "단면 — 활 닿는 윗면 라운드 (1:1)", fontsize=7.5, weight="bold")
+    ax0.text(x0, 107, f"• 거치대 앞끝은 문 안쪽 면(단열 플러그)에서 {p['rack_front']:g} 띄움 → 길이 = 안쪽 깊이 {d['cd']:.0f} − {p['rack_front']:g} = {d['rack_len']:.0f}", fontsize=7)
+    ax0.text(x0, 100, f"• 활 {int(p['n_bows'])}장 × {p['bow_pitch']:g} (궁대 포함) + 뒤 여유 {p['rack_back']:g} 가 들어감, 활 닿는 모서리는 모두 R{R:g}", fontsize=7)
     if kind in ("1", "2"):
         ax0.text(x0, 93, f"• 두 개를 가운데에서 좌우 {p['rack_gap'] / 2:g}씩(중심 간격 {p['rack_gap']:g}) 설치, 윗면 = 속 천장에서 {p['rack_drop']:g} 아래", fontsize=7)
     else:
@@ -847,14 +970,17 @@ def sheet_seal(pdf, parts, d, no, total):
     label(b1, (t + 40, -td / 2), "문 겉판", (6, 8))
     label(b1, (t + p["t_ins"] / 2, -td - 30), "단열재", (10, -4))
     label(b1, (t + p["t_ins"] + p["t_in"] / 2, -td - 38), "속판", (8, -8))
-    label(b1, (t + d["s"] / 2, -td - 1), "가스켓", (16, 2))
+    if gasket_on():
+        label(b1, (t + d["s"] / 2, -td - 1), "가스켓", (16, 2))
+    label(b1, (t + d["s"] / 2, -d["yfront"] - p["frame_d"] / 2), "문틀 띠", (16, -2))
     label(b1, (t + d["s"] + 25, -td - 5), "문 플러그", (10, -14))
     xm = d["xm"]
     b2 = view_axes(fig, 140, 165, (xm - 55, xm + 55), (-span, 10), sd)
     draw_plan(b2, parts, d, zc)
     dim(b2, (xm + p["gap"] / 2, -td), (xm + p["rebate"], -td), -4, f"턱 {p['rebate']:g}", fs=5.5)
     dim(b2, (xm - 50, 0), (xm - 50, -td / 2), 4, f"{td / 2:g}", fs=5.5)
-    label(b2, (xm + p["rebate"] / 2, -td / 2), "가스켓", (14, 6))
+    if gasket_on():
+        label(b2, (xm + p["rebate"] / 2, -td / 2), "가스켓", (14, 6))
     label(b2, (xm - 30, -td / 4), "왼문", (-6, 8))
     label(b2, (xm + 30, -td / 4), "오른문", (4, 8))
     ax0.text(140, 165 + (span + 10) / sd + 6, "ⓑ 양문 맞닿는 곳 평단면", fontsize=8, weight="bold")
@@ -863,21 +989,23 @@ def sheet_seal(pdf, parts, d, no, total):
     label(b3, (span - 20, p["H"] - t / 2), "천판", (6, 4))
     label(b3, (td / 2, p["H"] - t - 30), "문 겉판", (12, -6))
     ax0.text(30, 45 + (span + 20) / sd + 4, "ⓒ 위 문받이 측단면", fontsize=8, weight="bold")
-    zf = d["zf"]
-    b4 = view_axes(fig, 140, 45, (-10, span), (zf - 45, zf + span - 35), sd)
+    zr = d["door_z"][0]
+    b4 = view_axes(fig, 140, 45, (-10, span), (zr - 50, zr + span - 40), sd)
     draw_side(b4, parts, d, xm - 100)
-    label(b4, (span - 20, zf - t / 2), "중간판", (6, -4))
-    ax0.text(140, 45 + (span + 20) / sd + 4, "ⓓ 아래 문받이 측단면", fontsize=8, weight="bold")
+    label(b4, (p["t"] / 2, zr - 40), "아래 앞판", (14, -4))
+    label(b4, (d["yfront"] + p["frame_d"] / 2, zr), "문틀 띠", (16, 4))
+    ax0.text(140, 45 + (span + 20) / sd + 4, "ⓓ 문 아래 문받이 측단면", fontsize=8, weight="bold")
     x = 275
     ax0.text(x, 270, "밀폐·단열 구조", fontsize=9, weight="bold")
+    gtxt = (f"D형 가스켓 {p['gasket_w']:g}×{p['gasket_h']:g} (눌림 {d['gk']:g})" if gasket_on() else "가스켓 없음(맞닿음)")
     notes = [
         f"• 벽(뒤·위·아래·좌·우): 겉판 {t:g} + 단열재 {p['t_ins']:g} + 면상필름 + 삼나무 속판 {p['t_in']:g}",
-        f"• 문: 겉판 {td:g} 뒤에 단열 플러그(단열재 {p['t_ins']:g} + 속판 {p['t_in']:g})",
-        f"   플러그는 안쪽 공간보다 둘레 {p['plug_gap']:g} 작게 → 문을 닫으면 안으로 들어감",
-        f"• 문받이: 단열층 앞 가장자리 둘레(폭 {d['s']:g})에 D형 가스켓 {p['gasket_w']:g}×{p['gasket_h']:g}",
-        f"   문받이 면은 문 뒷면에서 {p['gasket_h'] * 0.5:g} 뒤 (가스켓 눌림 50%)",
-        f"• 양문: 턱맞춤 {p['rebate']:g} (두께 반씩 깎아 겹침) + 턱에 가스켓",
-        "• 앞바탕·고리로 양문을 눌러 닫음",
+        f"• 문틀 띠: 단열층 앞 둘레에 원목 띠(깊이 {p['frame_d']:g}) — 문이 닿는 면",
+        f"• 문: 겉판 {td:g} 뒤에 단열 플러그(단열재 + 속판), 둘레 {p['plug_gap']:g} 작게",
+        f"• 문받이: {gtxt}",
+        f"• 양문: 턱맞춤 {p['rebate']:g} (두께 반씩 깎아 겹침)" + (" + 턱에 가스켓" if gasket_on() else ""),
+        f"• 자석 캐치 Ø{p['mag_d']:g}: 문틀 띠(위{'·아래' if int(p['mag_n']) >= 2 else ''})에 매립,",
+        f"   가운데에서 좌우 {p['mag_off']:g}, 문 겉판 뒷면에 철판 — 저절로 열리지 않음",
         f"• 문 둘레 틈 {p['gap']:g}, 경첩은 문 한 짝당 {int(p['hinges'])}개",
         "• 전선·센서 구멍은 지름 8 이하, 내열 실리콘으로 메움",
         "• 단열재: 압출 폴리스티렌 또는 열반사 단열재",
@@ -906,26 +1034,29 @@ def bom_rows(parts):
 def hardware_rows(d):
     p = P()
     nh = max(int(p["hinges"]), 1)
-    r = [("나비경첩", nh * 2, f"문 한 짝당 {nh}"), ("앞바탕·고리", 1, "문 위 가운데"),
-         ("문 손잡이", 2, ""), ("귀장석", 4, "앞 모서리"), ("들쇠", 2, "옆판"),
-         ("D형 가스켓", 1, f"{p['gasket_w']:g}×{p['gasket_h']:g}, 약 {gasket_len(d) / 1000:.1f} m"),
-         ("온도조절기", 1, f"타공 {p['thermo_w']:g}×{p['thermo_h']:g}, 센서는 활 옆 중간 높이")]
-    if d["ctl"] > 0:
-        r.append(("다이얼(조광·타이머)", 1, f"타공 {p['dial_w']:g}×{p['dial_h']:g}"))
+    nm_ = max(int(p["mag_n"]), 1)
+    side = "왼쪽" if p["ctl_side"] != "R" else "오른쪽"
+    r = [("나비경첩", nh * 2, f"문 한 짝당 {nh}"),
+         ("자석 캐치(매립)·철판", nm_ * 2, f"Ø{p['mag_d']:g}, 문 한 짝당 {nm_}"),
+         ("문 손잡이", 2, ""), ("귀장석", 4, "앞 모서리"), ("들쇠", 2, "옆판")]
+    if gasket_on():
+        r.append(("D형 가스켓", 1, f"{p['gasket_w']:g}×{p['gasket_h']:g}, 약 {gasket_len(d) / 1000:.1f} m"))
+    r.append(("온도조절기", 1, f"아래 앞판 {side}, 타공 {p['thermo_w']:g}×{p['thermo_h']:g}(최대), 센서는 활 옆"))
+    r.append(("전원 리셉터클(IEC 인렛)", 1, f"뒷판 아래 {side}, 수평, 타공 {p['recp_w']:g}×{p['recp_h']:g}, 나사 {p['recp_pitch']:g}"))
     if p["heat"] == "film":
         for nm, w, l in d["films"]:
             r.append((f"면상필름({nm})", 1, f"{w:.0f}×{l:.0f}"))
     else:
-        r.append(("적외선 전구·소켓", 1, f"{p['bulb_watt']:g} W, 철망 덮개"))
-    r.append(("전원코드·휴즈", 1, f"합계 약 {d['power']:.0f} W"))
+        r.append(("PTC 히터", 1, f"{p['ptc_watt']:g} W, {p['ptc_w']:g}×{p['ptc_d']:g}×{p['ptc_h']:g}, 하부 바닥 가운데"))
+    r.append(("휴즈·배선", 1, f"합계 약 {d['power']:.0f} W"))
     return r
 
 
 def gasket_len(d):
     p = P()
-    W, t = p["W"], p["t"]
+    W, t, s = p["W"], p["t"], d["s"]
     dz0, dz1 = d["door_z"]
-    return 2 * (W - 2 * t) + 2 * (dz1 - dz0) + (dz1 - dz0)
+    return (W - 2 * t) + (W - 2 * t - 2 * s) + 2 * (dz1 - dz0) + (dz1 - dz0)
 
 
 def sheet_bom(pdf, parts, d):
@@ -956,7 +1087,8 @@ def sheet_bom(pdf, parts, d):
     info = [
         f"외형 W{p['W']:g} × H{p['H']:g} × D{p['D']:g}",
         f"안쪽(활 칸) {d['cw']:.0f} × {d['ch']:.0f} × {d['cd']:.0f}",
-        f"문 높이 {d['door_z'][1] - d['door_z'][0]:.0f}, 조절부 안높이 {d['ctl']:g}",
+        f"문 높이 {d['door_z'][1] - d['door_z'][0]:.0f} (천판 아래부터), 문 열린 높이 {d['open_h']:.0f}",
+        f"하부 공간 안높이 {p['lower_h']:g}, 선반 윗면 {d['zs1']:.0f} / 문 하단 {d['door_z'][0]:.0f}",
         f"부린활 {int(p['n_bows'])}장 × {p['bow_pitch']:g} (궁대 포함)",
         f"벌어진 활 {p['bow_open_span']:g} × {p['bow_open_h']:g}",
         f"오므라든 활 {p['bow_ring_w']:g} × {p['bow_ring_h']:g}",
@@ -978,7 +1110,9 @@ def sheet_bom(pdf, parts, d):
         "3. 온도조절기 센서는 활 옆 중간 높이, 속판에서 20 띄움.",
         f"4. 설정 {p['set_temp']:g} ℃ 기준, 과열 방지 휴즈 필수.",
         "5. 부린활은 벌어진 채로 넣어도 들어가도록 폭을 정함.",
-        "6. 조절부 칸 뒤쪽은 점검구(나사 고정)로 함.",
+        "6. 선반은 얹기만 하는 착탈식, 통풍 슬롯으로 아래위 공기 순환.",
+        "7. PTC 히터는 금속 받침 위에, 속판에서 10 이상 띄움.",
+        "8. 리셉터클 덮개가 옆으로 젖혀지므로 옆 여유 확보.",
     ]
     for s in notes:
         y -= 5.2
@@ -1009,6 +1143,16 @@ def to_dxf(path, parts, d):
             x, y, rowh = 0.0, y - rowh - 80, 0.0
         lay = "RACK" if q["mat"] == "ply" else "CUT"
         msp.add_lwpolyline([(px + x, py + y - h) for px, py in pts], close=True, dxfattribs={"layer": lay})
+        for sx_, sy_, sw_, sh_ in q.get("dev_slots", []):
+            msp.add_lwpolyline([(x + sx_, y - h + sy_), (x + sx_ + sw_, y - h + sy_), (x + sx_ + sw_, y - h + sy_ + sh_), (x + sx_, y - h + sy_ + sh_)],
+                               close=True, dxfattribs={"layer": "CUT"})
+        for kind, hx, hz, hw_, hh_ in q.get("dev_holes", []):
+            msp.add_lwpolyline([(x + hx - hw_ / 2, y - h + hz - hh_ / 2), (x + hx + hw_ / 2, y - h + hz - hh_ / 2),
+                                (x + hx + hw_ / 2, y - h + hz + hh_ / 2), (x + hx - hw_ / 2, y - h + hz + hh_ / 2)],
+                               close=True, dxfattribs={"layer": "CUT"})
+            if kind == "recp":
+                for sg in (-1, 1):
+                    msp.add_circle((x + hx + sg * P()["recp_pitch"] / 2, y - h + hz), P()["recp_hole"] / 2, dxfattribs={"layer": "CUT"})
         msp.add_text(f"{b[0]} t{b[4]:g}", height=12, dxfattribs={"layer": "TEXT"}).set_placement((x, y + 10))
         x += w + 60
         rowh = max(rowh, h)
@@ -1046,10 +1190,31 @@ def validate():
         e.append("안쪽 공간이 너무 작습니다. 외형 치수나 두께를 확인하세요.")
     if int(p["n_bows"]) < 1:
         e.append("활 장수는 1 이상이어야 합니다.")
-    if d["rack_len"] > d["cd"]:
-        e.append(f"거치대 길이({d['rack_len']:.0f})가 안쪽 깊이({d['cd']:.0f})보다 깁니다. 활 장수를 줄이거나 깊이를 늘리세요.")
+    if d["zs1"] > d["door_z"][0] + 1e-6:
+        e.append(f"하부 공간 높이가 너무 높습니다: 선반 윗면 {d['zs1']:.0f} > 문짝 하단 {d['door_z'][0]:.0f}. "
+                 f"하부 공간 안높이를 {p['lower_h'] - (d['zs1'] - d['door_z'][0]):.0f} 이하로 하거나 문 높이를 줄이세요.")
+    if d["rail0"] <= d["zb1"] + d["s"] + 10:
+        e.append("문 높이가 너무 큽니다. 문 아래에 아래 앞판이 남아야 합니다.")
+    n = int(p["n_bows"])
+    need = p["rack_back"] + n * p["bow_pitch"] + (p["r1_lip"] if p["rack"] == "1" else 10.0)
+    if need > d["rack_len"]:
+        e.append(f"활 {n}장이 거치대에 들어가지 않습니다: 필요 {need:.0f} > 거치대 {d['rack_len']:.0f}. 활 장수를 줄이거나 깊이를 늘리세요.")
+    tx, tz, tw, th = d["thermo"]
+    if th > p["lower_h"]:
+        e.append(f"온도조절기 홀 세로({th:g})가 하부 공간 안높이({p['lower_h']:g})보다 큽니다.")
+    if tz + th / 2 > d["door_z"][0] - p["gap"] - 5:
+        e.append("온도조절기 홀이 아래 앞판 위로 벗어납니다.")
+    if p["thermo_x"] < p["t"] + d["s"] + 5 or p["thermo_x"] + tw > p["W"] - p["t"] - d["s"] - 5:
+        e.append("온도조절기 홀이 옆판·문틀 띠와 겹칩니다. 위치(옆판→홀)나 가로 크기를 확인하세요.")
+    rx, rz, rw, rh = d["recp"]
+    if rh > p["lower_h"]:
+        e.append("리셉터클 타공이 하부 공간보다 큽니다.")
+    if p["recp_x"] < p["t"] + d["s"] + 5:
+        e.append("리셉터클이 옆판·단열층과 겹칩니다. 옆판→타공 거리를 늘리세요.")
     if p["heat"] == "film" and not faces():
         e.append("필름을 붙일 면을 하나 이상 선택하세요.")
+    if p["heat"] == "ptc" and p["ptc_h"] > p["lower_h"] - p["cleat"]:
+        e.append("PTC 히터가 하부 공간(선반받이 아래)보다 높습니다.")
     if p["rack"] not in ("1", "2", "3"):
         e.append("거치대 형식은 1, 2, 3 중 하나입니다.")
     if p["rebate"] >= d["cw"] / 4:
