@@ -41,7 +41,7 @@ plt.rcParams["axes.unicode_minus"] = False
 # ---------------------------------------------------------------- 기본값
 PARAM = dict(
     # 본체
-    W=920.0, H=950.0, D=320.0,      # 외형 가로·높이·깊이
+    W=920.0, H=800.0, D=320.0,      # 외형 가로·높이·깊이
     t=18.0,                         # 겉판 두께(옆판·천판·지판·뒷판·아래 앞판)
     foot_h=30.0, foot_w=60.0,       # 발 높이·크기(4개)
     pin_pitch=40.0,                 # 사개 손 간격(목표)
@@ -62,7 +62,7 @@ PARAM = dict(
     mag_n=1,                        # 문 한 짝당 자석 캐치 수(1: 위, 2: 위·아래)
     mag_d=12.0, mag_off=60.0,       # 자석 지름, 가운데에서 떨어진 거리
     # 하부 공간·선반
-    lower_h=160.0,                  # 하부 공간 안높이(속 바닥 → 선반 아랫면)
+    lower_h=120.0,                  # 하부 공간 안높이(속 바닥 → 선반 아랫면)
     shelf_t=18.0,                   # 선반 두께
     cleat=20.0,                     # 선반받이 각재
     vent_w=10.0, vent_pitch=30.0,   # 통풍 슬롯 폭·간격
@@ -77,13 +77,13 @@ PARAM = dict(
     recp_x=60.0,                    # 옆판 바깥 → 타공 가장자리(뒤에서 볼 때 같은 쪽)
     set_temp=30.0,                  # 설정 온도 ℃
     # 열원
-    heat="film",                    # film 면상필름 | ptc PTC 히터
+    heat="ptc",                     # ptc PTC 히터(하부) | film 면상필름
     film_faces="뒤,아래,좌,우",
     film_w=800.0, film_margin=20.0, film_wpm2=200.0,
-    ptc_w=120.0, ptc_d=70.0, ptc_h=60.0, ptc_watt=100.0,   # PTC 히터(하부 바닥)
+    ptc_w=230.0, ptc_d=150.0, ptc_h=70.0, ptc_watt=200.0,  # PTC 히터(하부 바닥 가운데)
     # 거치대
     rack="1",                       # 1 삼각 받침 2개 / 2 둥근 막대 2개 / 3 줌걸이 1개
-    rack_drop=100.0,                # 속 천장 → 거치대 윗면
+    rack_drop=85.0,                 # 속 천장 → 거치대 윗면
     rack_gap=260.0,                 # 받침·막대 중심 간격(1·2형)
     rack_back=10.0,                 # 뒷속판 → 첫 활
     rack_front=5.0,                 # 거치대 앞끝 → 문 안쪽 면
@@ -1243,8 +1243,15 @@ def validate():
         e.append("리셉터클이 옆판·단열층과 겹칩니다. 옆판→타공 거리를 늘리세요.")
     if p["heat"] == "film" and not faces():
         e.append("필름을 붙일 면을 하나 이상 선택하세요.")
-    if p["heat"] == "ptc" and p["ptc_h"] > p["lower_h"] - p["cleat"]:
-        e.append("PTC 히터가 하부 공간(선반받이 아래)보다 높습니다.")
+    if p["heat"] == "ptc":
+        if p["ptc_h"] > p["lower_h"] - p["cleat"]:
+            e.append("PTC 히터가 하부 공간(선반받이 아래)보다 높습니다.")
+        if p["ptc_d"] > d["cy1"] - d["y0i"] - 10 or p["ptc_w"] > d["cw"] - 2 * p["cleat"] - 10:
+            e.append("PTC 히터가 하부 공간보다 큽니다.")
+        # 조절기 몸체와 겹침
+        yc = (d["y0i"] + d["cy1"]) / 2
+        if (abs(tx - d["xm"]) < (tw + p["ptc_w"]) / 2 + 10) and (p["ctl_depth"] - 10 > yc - p["ptc_d"] / 2 - 10):
+            e.append("PTC 히터가 온습도 조절기 몸체와 겹칩니다. 조절기 위치나 히터 크기를 확인하세요.")
     if p["rack"] not in ("1", "2", "3"):
         e.append("거치대 형식은 1, 2, 3 중 하나입니다.")
     if p["rebate"] >= d["cw"] / 4:

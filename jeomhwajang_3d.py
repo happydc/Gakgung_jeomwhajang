@@ -357,8 +357,8 @@ renderer.setClearColor(0xf4f1ea); el.appendChild(renderer.domElement);
 const scene=new THREE.Scene();
 const cam=new THREE.PerspectiveCamera(35,1,10,20000); cam.up.set(0,0,1);
 const ctl=new THREE.OrbitControls(cam,renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0x9a8a76,1.0));
-const sun=new THREE.DirectionalLight(0xffffff,0.55); sun.position.set(-1200,-2000,2500); sun.intensity=0.7; scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xffffff,0x8a7a66,0.8));
+const sun=new THREE.DirectionalLight(0xffffff,0.55); sun.position.set(-1200,-2000,2500); sun.intensity=0.6; scene.add(sun);
 const sun2=new THREE.DirectionalLight(0xffffff,0.25); sun2.position.set(1500,1500,800); scene.add(sun2);
 const clip=new THREE.Plane(new THREE.Vector3(1,0,0),0); const clips=[];
 function dec(b64,T){const s=atob(b64),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new T(u.buffer);}

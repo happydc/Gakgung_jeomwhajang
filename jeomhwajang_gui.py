@@ -15,7 +15,7 @@ import jeomhwajang_3d as d3
 from jeomhwajang_preview import Preview, DESCR
 
 APP_TITLE = "각궁 점화장 제작도면 생성기"
-SETTINGS = os.path.join(os.path.expanduser("~"), ".gakgung_jeomhwajang.json")
+SETTINGS = os.path.join(os.path.expanduser("~"), ".gakgung_jeomhwajang_v2.json")
 
 # 탭: [(키, 라벨, 단위)]
 TABS = [
@@ -43,8 +43,8 @@ TABS = [
         ("recp_hole", "리셉터클 나사 구멍", "mm"), ("recp_x", "옆판→리셉터클 타공", "mm"), ("set_temp", "설정 온도", "℃"),
     ]),
     ("열원", [
+        ("ptc_w", "PTC 히터 가로", "mm"), ("ptc_d", "PTC 히터 깊이", "mm"), ("ptc_h", "PTC 히터 높이", "mm"), ("ptc_watt", "PTC 히터 전력", "W"),
         ("film_w", "필름 최대 폭", "mm"), ("film_margin", "필름 여유", "mm"), ("film_wpm2", "필름 전력", "W/m²"),
-        ("ptc_w", "PTC 가로", "mm"), ("ptc_d", "PTC 깊이", "mm"), ("ptc_h", "PTC 높이", "mm"), ("ptc_watt", "PTC 전력", "W"),
     ]),
     ("거치대", [
         ("rack_drop", "속 천장→거치대 윗면", "mm"), ("rack_gap", "받침 중심 간격", "mm"),
@@ -86,15 +86,58 @@ class App(tk.Tk):
         self._refresh()
 
     # ---------------------------------------------------------------- 화면
+    def _style(self):
+        st = ttk.Style(self)
+        try:
+            st.theme_use("clam")
+        except Exception:
+            pass
+        bg = "#f6f2ea"
+        self.configure(bg=bg)
+        f = ("Malgun Gothic", 10)
+        st.configure(".", background=bg, font=f)
+        st.configure("TLabelframe", background=bg)
+        st.configure("TLabelframe.Label", background=bg, font=("Malgun Gothic", 10, "bold"), foreground="#5a3d1e")
+        st.configure("TNotebook", background=bg, tabmargins=(2, 4, 2, 0))
+        st.configure("TNotebook.Tab", padding=(14, 7), font=("Malgun Gothic", 11, "bold"),
+                     background="#e2d6c2", foreground="#4a3a28")
+        st.map("TNotebook.Tab", background=[("selected", "#b5651d")], foreground=[("selected", "#ffffff")],
+               expand=[("selected", (1, 1, 1, 0))])
+        st.configure("TFrame", background=bg)
+        st.configure("Pick.TRadiobutton", background=bg, font=("Malgun Gothic", 10))
+        st.configure("Go.TButton", font=("Malgun Gothic", 11, "bold"), padding=(16, 6))
+
     def _build(self):
+        self._style()
         pad = dict(padx=6, pady=3)
         left = ttk.Frame(self)
         left.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+        # 주요 선택(탭 밖)
+        top = ttk.LabelFrame(left, text="주요 선택")
+        top.pack(fill="x", pady=(0, 8))
+        self.side = tk.StringVar(value=core.PARAM["ctl_side"])
+        self.heat = tk.StringVar(value=core.PARAM["heat"])
+        self.rack = tk.StringVar(value=core.PARAM["rack"])
+        rows = [
+            ("온습도 조절기·전원 인렛", "ctl_side", self.side, (("L", "왼쪽"), ("R", "오른쪽"))),
+            ("열원", "heat", self.heat, (("ptc", "PTC 히터(하부)"), ("film", "면상필름"))),
+            ("거치대", "rack", self.rack, (("1", "① 삼각 받침"), ("2", "② 둥근 막대"), ("3", "③ 줌걸이"))),
+        ]
+        for r_, (lab, key, var, opts) in enumerate(rows):
+            la = ttk.Label(top, text=lab, font=("Malgun Gothic", 10, "bold"))
+            la.grid(row=r_, column=0, sticky="w", padx=8, pady=3)
+            fr_ = ttk.Frame(top)
+            fr_.grid(row=r_, column=1, sticky="w")
+            for val, txt in opts:
+                rb = ttk.Radiobutton(fr_, text=txt, value=val, variable=var, command=self._refresh, style="Pick.TRadiobutton")
+                rb.pack(side="left", padx=6)
+                self._hover(key, rb)
+            self._hover(key, la)
         nb = ttk.Notebook(left)
         nb.pack(fill="both", expand=True)
         for title, fields in TABS:
-            fr = ttk.Frame(nb)
-            nb.add(fr, text=title)
+            fr = ttk.Frame(nb, padding=(6, 8))
+            nb.add(fr, text=f" {title} ")
             nrow = 9
             for i, (k, lab, unit) in enumerate(fields):
                 rr, cc = i % nrow, (i // nrow) * 3
@@ -114,22 +157,9 @@ class App(tk.Tk):
                 cb = ttk.Checkbutton(fr, text="가스켓 사용", variable=self.gasket, command=self._refresh)
                 cb.grid(row=r, column=0, columnspan=3, sticky="w", padx=6, pady=6)
                 self._hover("gasket", cb)
-            if title == "하부·전원":
-                self.side = tk.StringVar(value=core.PARAM["ctl_side"])
-                sf = ttk.LabelFrame(fr, text="온습도 조절기·리셉터클 위치")
-                sf.grid(row=r, column=0, columnspan=6, sticky="ew", padx=6, pady=6)
-                for val, txt in (("L", "왼쪽"), ("R", "오른쪽")):
-                    ttk.Radiobutton(sf, text=txt, value=val, variable=self.side, command=self._refresh).pack(side="left", padx=6)
-                self._hover("ctl_side", sf)
             if title == "열원":
-                self.heat = tk.StringVar(value=core.PARAM["heat"])
-                hf = ttk.LabelFrame(fr, text="열원 종류")
-                hf.grid(row=r, column=0, columnspan=3, sticky="ew", padx=6, pady=6)
-                for val, txt in (("film", "면상필름"), ("ptc", "PTC 히터(하부 바닥)")):
-                    ttk.Radiobutton(hf, text=txt, value=val, variable=self.heat, command=self._refresh).pack(side="left", padx=6)
-                self._hover("heat", hf)
-                ff = ttk.LabelFrame(fr, text="필름 붙일 면")
-                ff.grid(row=r + 1, column=0, columnspan=3, sticky="ew", padx=6, pady=4)
+                ff = ttk.LabelFrame(fr, text="면상필름을 붙일 면 (열원이 면상필름일 때)")
+                ff.grid(row=r, column=0, columnspan=6, sticky="ew", padx=6, pady=6)
                 self.face_vars = {}
                 cur = core.faces()
                 for nm in core.FACE_NAMES:
@@ -137,13 +167,6 @@ class App(tk.Tk):
                     ttk.Checkbutton(ff, text=nm, variable=b, command=self._refresh).pack(side="left", padx=4)
                     self.face_vars[nm] = b
                 self._hover("film_faces", ff)
-            if title == "거치대":
-                self.rack = tk.StringVar(value=core.PARAM["rack"])
-                rf = ttk.LabelFrame(fr, text="거치대 형식")
-                rf.grid(row=r, column=0, columnspan=3, sticky="ew", padx=6, pady=6)
-                for val, txt in (("1", "① 삼각 받침 2개"), ("2", "② 둥근 막대 2개"), ("3", "③ 줌걸이 1개")):
-                    ttk.Radiobutton(rf, text=txt, value=val, variable=self.rack, command=self._refresh).pack(anchor="w", padx=6)
-                self._hover("rack", rf)
 
         right = ttk.LabelFrame(self, text="미리보기 — 항목에 마우스를 올려 보세요")
         right.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=(0, 8), pady=8)
@@ -162,7 +185,7 @@ class App(tk.Tk):
         ttk.Checkbutton(left, text="3D 모델(OBJ · SketchUp용 DAE)과 3D 뷰어도 생성", variable=self.want3d).pack(anchor="w", pady=(6, 0))
         bf = ttk.Frame(left)
         bf.pack(fill="x", pady=(8, 0))
-        self.btn = ttk.Button(bf, text="도면 생성", command=self._run)
+        self.btn = ttk.Button(bf, text="도면 · 3D 생성", command=self._run, style="Go.TButton")
         self.btn.pack(side="left")
         ttk.Button(bf, text="기본값", command=self._reset).pack(side="left", padx=6)
         self.status = tk.StringVar(value="치수를 확인하고 [도면 생성]을 누르세요.")
@@ -304,7 +327,7 @@ class App(tk.Tk):
             if data.get("ctl_side") in ("L", "R"):
                 self.side.set(data["ctl_side"])
             if data.get("heat") not in ("film", "ptc"):
-                self.heat.set("film")
+                self.heat.set("ptc")
             if "faces" in data:
                 for n, b in self.face_vars.items():
                     b.set(n in data["faces"])
