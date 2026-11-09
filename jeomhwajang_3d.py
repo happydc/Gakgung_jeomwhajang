@@ -301,15 +301,17 @@ def write_viewer(path, meshes, d, bows):
     return [path]
 
 
-def export_3d(outdir="output", params=None):
+def export_3d(outdir="output", params=None, outputs=None):
+    """3D 뷰어(HTML)는 항상, OBJ·DAE는 outputs에 있을 때만(None이면 모두)"""
     meshes, d, bows = model(params)
     p = core.P()
     os.makedirs(outdir, exist_ok=True)
     base = os.path.join(outdir, f"jeomhwajang_W{p['W']:.0f}_H{p['H']:.0f}_D{p['D']:.0f}_bow{int(p['n_bows'])}")
-    files = []
-    files += write_obj(base + "_3d.obj", meshes)
-    files += write_dae(base + "_3d_sketchup.dae", meshes)
-    files += write_viewer(base + "_3d_viewer.html", meshes, d, bows)
+    files = write_viewer(base + "_3d_viewer.html", meshes, d, bows)
+    if core.want(outputs, "obj"):
+        files += write_obj(base + "_3d.obj", meshes)
+    if core.want(outputs, "dae"):
+        files += write_dae(base + "_3d_sketchup.dae", meshes)
     return files
 
 
@@ -343,7 +345,8 @@ VIEWER = r"""<!DOCTYPE html>
  <div id="layers"></div>
  <h2>부린활</h2>
  <label><input type="radio" name="bow" value="none"> 숨김</label>
- <label><input type="radio" name="bow" value="open" checked> 벌어진 활</label>
+ <label><input type="radio" name="bow" value="mix" checked> 섞어서 (벌어진·오므라든 번갈아)</label>
+ <label><input type="radio" name="bow" value="open"> 벌어진 활</label>
  <label><input type="radio" name="bow" value="closed"> 오므라든 활</label>
  <button id="reset">시점 처음으로</button>
  <div class="mut" style="margin-top:8px">왼쪽 끌기: 회전 · 오른쪽 끌기: 이동 · 휠: 확대</div>
@@ -382,17 +385,19 @@ for(const m of DATA){
   (layers[m.l]=layers[m.l]||[]).push(grp);
 }
 // 부린활
-const bowGrp={};
+const bowGrp={open:new THREE.Group(),closed:new THREE.Group(),mix:new THREE.Group()};
 for(const st of ['open','closed']){
-  const G=new THREE.Group(), B=BOWS[st];
-  for(const y of B.y){
+  const B=BOWS[st];
+  B.y.forEach((y,k)=>{
     const pts=B.x.map((x,i)=>new THREE.Vector3(x,y,B.z[i]));
     const tube=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),200,INFO.limb/2,8,false);
-    G.add(new THREE.Mesh(tube,new THREE.MeshLambertMaterial({color:st==='open'?0x9a6b2f:0x7a5326,clippingPlanes:clips})));
-  }
-  bowGrp[st]=G; scene.add(G);
+    const mk=()=>new THREE.Mesh(tube,new THREE.MeshLambertMaterial({color:st==='open'?0x9a6b2f:0x7a5326,clippingPlanes:clips}));
+    bowGrp[st].add(mk());
+    if((k%2===0)===(st==='open')) bowGrp.mix.add(mk());   // 뒤에서부터 벌어진·오므라든 번갈아
+  });
 }
-bowGrp.closed.visible=false;
+for(const k in bowGrp) scene.add(bowGrp[k]);
+bowGrp.open.visible=false; bowGrp.closed.visible=false;
 document.querySelectorAll('input[name=bow]').forEach(r=>r.onchange=()=>{
   const v=document.querySelector('input[name=bow]:checked').value; for(const k in bowGrp)bowGrp[k].visible=(k===v);});
 const order=['겉판','문','단열재','속판','열원','선반','거치대','조절기','가스켓·철물'];

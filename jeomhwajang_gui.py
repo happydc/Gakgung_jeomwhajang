@@ -185,8 +185,13 @@ class App(tk.Tk):
         self.outdir = tk.StringVar(value=os.path.join(os.path.expanduser("~"), "Documents", "점화장도면"))
         ttk.Entry(bot, textvariable=self.outdir, width=34).grid(row=0, column=1, padx=4)
         ttk.Button(bot, text="찾기…", command=self._browse).grid(row=0, column=2)
-        self.want3d = tk.BooleanVar(value=True)
-        ttk.Checkbutton(left, text="3D 모델(OBJ · SketchUp용 DAE)과 3D 뷰어도 생성", variable=self.want3d).pack(anchor="w", pady=(6, 0))
+        of = ttk.LabelFrame(left, text="출력 파일 — 도면 PDF·3D 뷰어(HTML)는 항상 만듦")
+        of.pack(fill="x", pady=(8, 0))
+        self.outs = {}
+        for key, txt in (("dxf", "DXF(부재 1:1)"), ("csv", "재단표 CSV"), ("obj", "3D OBJ"), ("dae", "SketchUp DAE")):
+            b = tk.BooleanVar(value=False)
+            ttk.Checkbutton(of, text=txt, variable=b).pack(side="left", padx=6, pady=4)
+            self.outs[key] = b
         bf = ttk.Frame(left)
         bf.pack(fill="x", pady=(8, 0))
         self.btn = ttk.Button(bf, text="도면 · 3D 생성", command=self._run, style="Go.TButton")
@@ -275,15 +280,14 @@ class App(tk.Tk):
                                            + "\n\n그래도 도면을 만들까요?"):
             return
         out = self.outdir.get().strip() or "."
-        want3d = self.want3d.get()
+        outputs = {k for k, b in self.outs.items() if b.get()}
         self.btn.state(["disabled"])
         self.status.set("생성 중…")
 
         def work():
             try:
-                files = core.generate(out, params=params)
-                if want3d:
-                    files += d3.export_3d(out, params=params)
+                files = core.generate(out, params=params, outputs=outputs)
+                files += d3.export_3d(out, params=params, outputs=outputs)
                 self.after(0, lambda: self._done(out, files))
             except Exception as e:  # noqa
                 self.after(0, lambda: self._fail(e))
@@ -316,7 +320,8 @@ class App(tk.Tk):
                         ch[k] = v.get()
                 except ValueError:
                     pass
-            data = {"params": ch, "outdir": self.outdir.get()}
+            data = {"params": ch, "outdir": self.outdir.get(),
+                    "outputs": [k for k, b in self.outs.items() if b.get()]}
             for key, var in (("door_type", self.dtype), ("heat", self.heat), ("rack", self.rack), ("ctl_side", self.side)):
                 if var.get() != str(self.defaults[key]):
                     data[key] = var.get()
@@ -352,6 +357,9 @@ class App(tk.Tk):
                     b.set(n in data["faces"])
             if data.get("outdir"):
                 self.outdir.set(data["outdir"])
+            for k in data.get("outputs", []):
+                if k in self.outs:
+                    self.outs[k].set(True)
         except Exception:
             pass
 

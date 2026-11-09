@@ -108,7 +108,7 @@ def preview(params_json):
                            P={k: _num(v) for k, v in core.P().items()}), ensure_ascii=False)
 
 
-def generate(params_json, want3d):
+def generate(params_json, outputs_json="[]"):
     """도면(PDF·DXF·CSV)과 3D 파일을 /out 에 만들고 파일 경로 목록을 돌려줌"""
     params = json.loads(params_json)
     errs = _extra_errors(params)
@@ -119,9 +119,9 @@ def generate(params_json, want3d):
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
     os.makedirs(OUT)
-    files = core.generate(OUT, params=None)
-    if want3d:
-        files += d3.export_3d(OUT, params=None)
+    outputs = set(json.loads(outputs_json or "[]"))
+    files = core.generate(OUT, params=None, outputs=outputs)
+    files += d3.export_3d(OUT, params=None, outputs=outputs)
     parts, d = core.build()
     bad = [[a, float(b), float(c)] for a, b, c, ok in core.checks(parts, d) if not ok]
     return json.dumps(dict(files=files, bad=bad), ensure_ascii=False)

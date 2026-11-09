@@ -54,7 +54,7 @@ PARAM = dict(
     # 본체
     W=1000.0, H=800.0, D=320.0,      # 외형 가로·높이·깊이
     t=18.0,                         # 겉판 두께(옆판·천판·지판·뒷판·아래 앞판)
-    foot_h=30.0, foot_w=60.0,       # 발 높이·크기(4개)
+    foot_h=18.0, foot_w=60.0,       # 발 높이·크기(4개)
     pin_pitch=40.0,                 # 사개 손 간격(목표)
     dado=6.0,                       # 뒷판·아래 앞판 홈 깊이
     # 단열·밀폐
@@ -762,6 +762,11 @@ def draw_front(ax, parts, d, opened):
                 ax.add_patch(Rectangle((xm + sgn * 40 - 6, zc - 50), 12, 100, fc="#6b4b2a", ec="k", lw=0.3, zorder=5))
 
 
+def bow_state(k):
+    """k번째 활(뒤에서부터)의 표시 상태 — 벌어진 활과 오므라든 활을 번갈아 섞음"""
+    return "open" if k % 2 == 0 else "closed"
+
+
 def draw_bows(ax, d, view, n_all=True):
     p = P()
     for st, col, ls in (("open", "#1f5fbf", "--"), ("closed", "#2e8b57", "-.")):
@@ -772,6 +777,8 @@ def draw_bows(ax, d, view, n_all=True):
         else:
             n = int(p["n_bows"])
             for k in range(n):
+                if bow_state(k) != st:
+                    continue
                 yc = d["cy1"] - p["rack_back"] - p["bow_pitch"] * (k + 0.5)
                 w = p["bow_pitch"] * 0.8
                 ax.add_patch(Rectangle((yc - w / 2, zo.min()), w, zt - zo.min(), fill=False, ec=col, lw=0.6, ls=ls, zorder=7))
@@ -1407,7 +1414,15 @@ def validate():
     return e
 
 
-def generate(outdir="output", params=None):
+OUTPUTS = ("dxf", "csv", "obj", "dae")    # 선택 출력(PDF·3D 뷰어는 항상)
+
+
+def want(outputs, key):
+    return outputs is None or key in outputs
+
+
+def generate(outdir="output", params=None, outputs=None):
+    """PDF는 항상, DXF·CSV는 outputs에 있을 때만(None이면 모두)"""
     apply(params)
     errs = validate()
     if errs:
@@ -1416,15 +1431,19 @@ def generate(outdir="output", params=None):
     parts, d = build()
     p = P()
     base = os.path.join(outdir, f"jeomhwajang_W{p['W']:.0f}_H{p['H']:.0f}_D{p['D']:.0f}_bow{int(p['n_bows'])}")
-    files = [base + ".pdf", base + "_parts.dxf", base + "_cutlist.csv"]
+    files = [base + ".pdf"]
     with PdfPages(files[0]) as pdf:
         sheet_assembly(pdf, parts, d)
         sheet_parts(pdf, parts, d)
         sheet_rack(pdf, parts, d, 3, 5)
         sheet_seal(pdf, parts, d, 4, 5)
         sheet_bom(pdf, parts, d)
-    to_dxf(files[1], parts, d)
-    write_csv(files[2], parts, d)
+    if want(outputs, "dxf"):
+        files.append(base + "_parts.dxf")
+        to_dxf(files[-1], parts, d)
+    if want(outputs, "csv"):
+        files.append(base + "_cutlist.csv")
+        write_csv(files[-1], parts, d)
     return files
 
 

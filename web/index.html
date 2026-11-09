@@ -75,7 +75,15 @@ footer{color:var(--mut);font-size:12px;padding:0 20px 20px}
     <div class="actions">
       <button class="go" id="go" disabled>도면 · 3D 생성</button>
       <button class="sub" id="reset">기본값</button>
-      <label><input type="checkbox" id="want3d" checked> 3D 모델·3D 뷰어도 생성</label>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <h2>출력 파일 — 도면 PDF·3D 뷰어(HTML)는 항상 만듭니다</h2>
+      <div class="extra" style="margin:0;padding:0;border:none" id="outs">
+        <label><input type="checkbox" value="dxf"> DXF(부재 1:1)</label>
+        <label><input type="checkbox" value="csv"> 재단표 CSV</label>
+        <label><input type="checkbox" value="obj"> 3D OBJ</label>
+        <label><input type="checkbox" value="dae"> SketchUp DAE</label>
+      </div>
     </div>
     <div id="status"></div>
     <div class="card" id="files">
@@ -313,10 +321,10 @@ function draw(){
       if (y1 - y0 < 3) line(gy(y0), fz(z0), gy(y0), fz(z1), c, 3); else line(gy(y0), fz(z0), gy(y1), fz(z0), c, 3); continue; }
     rect(gy(y0), fz(z1), gy(y1), fz(z0), hl ? HL : col, hl ? HL : '#6b5535', hl?3:1.2);
   }
-  const Bo = last.bows.open;
-  for (let k = 0; k < P.n_bows; k++){
+  for (let k = 0; k < P.n_bows; k++){     // 뒤에서부터 벌어진·오므라든 활을 번갈아
+    const op = k % 2 === 0, Bo = last.bows[op ? 'open' : 'closed'];
     const yc = d.cy1 - P.rack_back - P.bow_pitch * (k + 0.5), w = P.bow_pitch * 0.8;
-    rect(gy(yc - w/2), fz(Bo.zt), gy(yc + w/2), fz(Bo.zmin), null, bh ? HL : '#1f5fbf', bh?3:1.5, [8,4]);
+    rect(gy(yc - w/2), fz(Bo.zt), gy(yc + w/2), fz(Bo.zmin), null, bh ? HL : (op ? '#1f5fbf' : '#2e8b57'), bh?3:1.5, op ? [8,4] : [4,4]);
   }
   if (P.door_type === 'bandaji'){
     const c = (hover === 'door_type' || hover === 'door_h' || hover === 'bj_stays') ? HL : '#b5651d', st = 70;   // 열린 문판 앞부분만
@@ -357,7 +365,9 @@ $('go').onclick = async () => {
   $('busy').style.display = 'flex'; $('busymsg').textContent = '도면을 만드는 중… (10~30초)'; $('go').disabled = true;
   await new Promise(r => setTimeout(r, 50));
   try{
-    const r = JSON.parse(api.generate(JSON.stringify(vals), $('want3d').checked));
+    const outs = [...document.querySelectorAll('#outs input:checked')].map(c => c.value);
+    try{ localStorage.setItem(STORE + '_outs', JSON.stringify(outs)); }catch(e){}
+    const r = JSON.parse(api.generate(JSON.stringify(vals), JSON.stringify(outs)));
     if (r.errors && r.errors.length){ alert('입력값을 확인하세요.\n\n' + r.errors.join('\n')); return; }
     urls.forEach(u => URL.revokeObjectURL(u)); urls = [];
     const ul = $('flist'); ul.innerHTML = '';
@@ -383,6 +393,7 @@ $('go').onclick = async () => {
     $('busy').style.display = 'none'; $('go').disabled = false;
   }
 };
+try{ const o = JSON.parse(localStorage.getItem(STORE + '_outs') || '[]'); document.querySelectorAll('#outs input').forEach(c => c.checked = o.includes(c.value)); }catch(e){}
 $('reset').onclick = () => { try{ localStorage.removeItem(STORE); localStorage.removeItem('jeomhwajang_web_v1'); }catch(e){} build(); };
 boot();
 </script>
