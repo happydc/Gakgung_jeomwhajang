@@ -314,10 +314,14 @@ function draw(){
     rect(gy(yc - w/2), fz(Bo.zt), gy(yc + w/2), fz(Bo.zmin), null, bh ? HL : '#1f5fbf', bh?3:1.5, [8,4]);
   }
   if (P.door_type === 'bandaji'){
-    const c = (hover === 'door_type' || hover === 'door_h') ? HL : '#b5651d', st = 60;   // 열린 문판 앞부분만
-    rect(gy(-st), fz(d.dz0 + P.t_door), gy(0), fz(d.dz0), null, c, 2, [8,5]);
+    const c = (hover === 'door_type' || hover === 'door_h' || hover === 'bj_stays') ? HL : '#b5651d', st = 70;   // 열린 문판 앞부분만
+    const th = (d.bj_angle || 90) * Math.PI / 180, td = P.t_door;
+    const pt = (u, v) => [gy(-u * Math.sin(th) - v * Math.cos(th)), fz(d.dz0 + u * Math.cos(th) - v * Math.sin(th))];
+    g.beginPath(); [[0,0],[st,0],[st,-td],[0,-td]].forEach(([u,v], i) => { const [X,Y] = pt(u,v); i ? g.lineTo(X,Y) : g.moveTo(X,Y); });
+    g.closePath(); g.setLineDash([8,5]); g.strokeStyle = c; g.lineWidth = 2; g.stroke(); g.setLineDash([]);
+    const [lx, ly] = pt(st, 0);
     g.fillStyle = c; g.font = '16px "Malgun Gothic",sans-serif'; g.textAlign = 'right';
-    g.fillText('문판 90° 열림 →', gy(-st) - 4, fz(d.dz0) - 4); g.textAlign = 'left';
+    g.fillText(`문판 ${Math.round(d.bj_angle || 90)}° 열림`, lx - 6, ly + 18); g.textAlign = 'left';
   }
   dim(gy(0), fz(H) - 22, gy(D), fz(H) - 22, String(D), hover === 'D');
   g.fillStyle = '#4a3a28'; g.font = 'bold 22px "Malgun Gothic",sans-serif';

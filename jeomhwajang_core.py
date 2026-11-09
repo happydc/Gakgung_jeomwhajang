@@ -68,10 +68,10 @@ PARAM = dict(
     rebate=12.0,                    # 양문 맞닿는 턱 너비
     # 문
     door_type="double",             # double 양문 여닫이 | bandaji 반닫이(문판이 앞으로 젖혀 열림)
-    door_h=550.0,                   # 문 높이(천판 아래에서 아래로)
+    door_h=400.0,                   # 문 높이(천판 아래에서 아래로)
     bj_cleat=45.0,                  # 반닫이 문판 양끝 마구리 폭(0이면 통판)
     bj_hinges=3,                    # 반닫이 경첩 수(문판 아래 끝)
-    bj_stays=2,                     # 반닫이 지지대 수(90°에서 멈춤)
+    bj_stays=0,                     # 반닫이 지지대 수(0이면 바닥에 닿을 때까지 열림, 1 이상이면 90°에서 멈춤)
     t_door=18.0,                    # 문 겉판 두께
     hinges=2,                       # 문 한 짝당 경첩 수
     mag_n=1,                        # 문 한 짝당 자석 캐치 수(1: 위, 2: 위·아래)
@@ -383,6 +383,7 @@ def build():
             xc = x0d + 80 + (x1d - x0d - 160) * (k / (nh - 1) if nh > 1 else 0.5)
             hw.append(("경첩B", xc, dz0))
         d["hardware"] = hw
+        d["bj_angle"], d["bj_contact"] = bj_open(d)
     else:
         r = p["rebate"]
         hd = td / 2
@@ -527,6 +528,39 @@ def rack1_profile(L):
         pts.append((L - R + R * math.cos(a), h + lip * math.sin(a)))
     pts += [(L, h - tip)]
     return pts
+
+
+# ---------------------------------------------------------------- 반닫이 문판 열림
+def bj_point(d, u, v, th):
+    """문판 위의 점(u: 경첩에서 문판을 따라 위로, v: 앞쪽으로)을 열림 각 th(도)만큼 돌린 위치 (y, z)"""
+    t = math.radians(th)
+    return (-u * math.sin(t) - v * math.cos(t), d["door_z"][0] + u * math.cos(t) - v * math.sin(t))
+
+
+def bj_poly(d, th, length=None):
+    """열린 문판 겉판 외곽(y, z)"""
+    L = (d["door_z"][1] - d["door_z"][0]) if length is None else length
+    td = P()["t_door"]
+    return [bj_point(d, u, v, th) for u, v in ((0, 0), (L, 0), (L, -td), (0, -td))]
+
+
+def bj_open(d):
+    """반닫이 문판이 열리는 각도와 닿는 곳. 지지대가 있으면 90°"""
+    p = P()
+    if int(p["bj_stays"]) > 0:
+        return 90.0, "지지대"
+    L = d["door_z"][1] - d["door_z"][0]
+    pts = [(L, 0.0), (L, -p["t_door"]), (L - 60, 22.0), (L - 80, 22.0)]   # 문판 끝 모서리, 손잡이
+    th = 90.0
+    while th < 180.0:
+        th += 0.25
+        for u, v in pts:
+            y, z = bj_point(d, u, v, th)
+            if z <= 0:
+                return th - 0.25, "바닥"
+            if y > 0 and z < d["door_z"][0]:
+                return th - 0.25, "아래 앞판"
+    return 180.0, "아래 앞판"
 
 
 # ---------------------------------------------------------------- 부린활 형상
@@ -860,14 +894,20 @@ def sheet_assembly(pdf, parts, d):
     a3 = view_axes(fig, gx3, y_front, (-m - ext, D + m), (-m * 0.6, H + m * 0.4), s)
     draw_side(a3, parts, d, xc)
     draw_bows(a3, d, "side")
-    if is_bandaji():     # 90° 열린 문판(점선)과 경첩 축
+    if is_bandaji():     # 열린 문판(점선)과 경첩 축, 문판 끝이 지나는 궤적
         dz0, dz1 = d["door_z"]
         hh = dz1 - dz0
-        a3.add_patch(Rectangle((-hh, dz0), hh, p["t_door"], fill=False, ec="#b5651d", lw=0.7, ls="--", zorder=8))
+        ang, where = d["bj_angle"], d["bj_contact"]
+        a3.add_patch(Polygon(bj_poly(d, ang), fill=False, ec="#b5651d", lw=0.7, ls="--", zorder=8))
+        if int(p["bj_stays"]) == 0 and ang > 90.5:
+            a3.add_patch(Polygon(bj_poly(d, 90.0), fill=False, ec="#b5651d", lw=0.4, ls=":", zorder=8))
         a3.add_patch(Circle((0, dz0), 6, fill=False, ec="#b5651d", lw=0.7, zorder=8))
-        th_ = np.linspace(0, math.pi / 2, 30)
+        th_ = np.linspace(0, math.radians(ang), 40)
         a3.plot(-hh * np.sin(th_), dz0 + hh * np.cos(th_), color="#b5651d", lw=0.4, ls=":")
-        a3.text(-hh / 2, dz0 + 30, "열린 문판 (90°, 지지대)", fontsize=5, ha="center", color="#b5651d")
+        a3.plot([-max(hh, 40) - 20, 0], [0, 0], color="k", lw=0.5)
+        ty, tz = bj_point(d, hh * 0.55, 0, ang)
+        a3.text(ty, tz + 55, f"열린 문판 {ang:.0f}° ({where}에 닿음)" if where != "지지대" else "열린 문판 90° (지지대)",
+                fontsize=5, ha="center", color="#b5651d")
     dim(a3, (0, H), (D, H), 6, f"{D:g}")
     dim(a3, (d["cy1"] - d["rack_len"], d["rack_top"] + 30), (d["cy1"], d["rack_top"] + 30), 2, f"{d['rack_len']:.0f}", fs=5)
     dim(a3, (d["cy0"], d["zs1"]), (d["cy1"], d["zs1"]), -2, f"안 {d['cd']:.0f}", fs=5)
@@ -1081,10 +1121,10 @@ def sheet_seal(pdf, parts, d, no, total):
         dz0 = d["door_z"][0]
         b2 = view_axes(fig, 140, 165, (-50, span - 20), (dz0 - 50, dz0 + span - 40), sd)
         draw_side(b2, parts, d, xm - 100)
-        b2.add_patch(Rectangle((-60, dz0), 60, td, fill=False, ec="#b5651d", lw=0.8, ls="--", zorder=8))
+        b2.add_patch(Polygon(bj_poly(d, d["bj_angle"], 70), fill=False, ec="#b5651d", lw=0.8, ls="--", zorder=8))
         b2.add_patch(Circle((0, dz0), 3, fill=False, ec="#b5651d", lw=0.8, zorder=8))
         label(b2, (0, dz0), "경첩 축(앞면 선)", (-8, -10))
-        label(b2, (-30, dz0 + td), "90° 열린 문판", (-4, 10))
+        label(b2, bj_point(d, 40, 0, d["bj_angle"]), f"{d['bj_angle']:.0f}° 열린 문판", (-4, 10))
         ax0.text(140, 165 + (span + 10) / sd + 6, "상세 2 · 반닫이 경첩부 측단면", fontsize=8, weight="bold")
     else:
         b2 = view_axes(fig, 140, 165, (xm - 55, xm + 55), (-span, 10), sd)
@@ -1117,7 +1157,8 @@ def sheet_seal(pdf, parts, d, no, total):
         f"• 문받이: {gtxt}",
         (f"• 반닫이 문판: 한 장, 양끝 마구리 {p['bj_cleat']:g}(촉 끼움, 휨 방지)" if is_bandaji()
          else f"• 양문: 턱맞춤 {p['rebate']:g} (두께 반씩 깎아 겹침)" + (" + 턱에 가스켓" if gasket_on() else "")),
-        (f"• 경첩 {int(p['bj_hinges'])}개를 문판 아래 끝 앞면 선에 축이 오게, 지지대 {int(p['bj_stays'])}개로 90°에서 멈춤" if is_bandaji()
+        ((f"• 경첩 {int(p['bj_hinges'])}개를 문판 아래 끝 앞면 선에 축이 오게, 지지대 {int(p['bj_stays'])}개로 90°에서 멈춤" if int(p['bj_stays']) > 0
+          else f"• 경첩 {int(p['bj_hinges'])}개(180° 열리는 맞경첩)를 문판 아래 끝 앞면 선에 축이 오게, 문판은 {d['bj_angle']:.0f}°에서 {d['bj_contact']}에 닿음") if is_bandaji()
          else f"• 경첩은 문 한 짝당 {int(p['hinges'])}개 (맞경첩, 옆면 매립)"),
         f"• 자석 캐치 Ø{p['mag_d']:g}: 문틀 띠(위{'·아래' if int(p['mag_n']) >= 2 else ''})에 매립,",
         f"   가운데에서 좌우 {p['mag_off']:g}, 문 겉판 뒷면에 철판 — 저절로 열리지 않음",
@@ -1153,7 +1194,8 @@ def hardware_rows(d):
     side = "왼쪽" if p["ctl_side"] != "R" else "오른쪽"
     if is_bandaji():
         r = [("맞경첩(황동)", int(p["bj_hinges"]), "문판 아래 끝, 축이 앞면 선에 오게 파서 묻음"),
-             ("문판 지지대(스테이)", int(p["bj_stays"]), "양옆, 문판을 90°에서 받침"),
+             (("문판 지지대(스테이)", int(p["bj_stays"]), "양옆, 문판을 90°에서 받침") if int(p["bj_stays"]) > 0 else
+              ("문판 끝 펠트·고무 받침", 2, f"문판이 {d['bj_angle']:.0f}°에서 {d['bj_contact']}에 닿는 곳 보호")),
              ("자석 캐치(매립)·철판", 2 * nm_, f"Ø{p['mag_d']:g}, 위 문틀 띠"),
              ("원목 손잡이(가로)", 1, "문판 위 가운데, 뒤에서 나사")]
     else:

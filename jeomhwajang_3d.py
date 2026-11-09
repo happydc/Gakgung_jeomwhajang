@@ -289,7 +289,8 @@ def write_viewer(path, meshes, d, bows):
                          o=0.55 if m["mat"] in ("ins",) else 1.0))
     info = dict(W=p["W"], H=p["H"], D=p["D"], t=p["t"], gap=p["gap"], n=int(p["n_bows"]),
                 limb=p["bow_limb"], cw=round(d["cw"]), ch=round(d["ch"]), cd=round(d["cd"]),
-                door=p["door_h"], lower=p["lower_h"], bj=core.is_bandaji(), dz0=round(d["door_z"][0], 1))
+                door=p["door_h"], lower=p["lower_h"], bj=core.is_bandaji(), dz0=round(d["door_z"][0], 1),
+                bjmax=round(float(d.get("bj_angle", 90.0))))
     html = (VIEWER.replace("__THREE__", _vendor("three.min.js"))
             .replace("__ORBIT__", _vendor("OrbitControls.js"))
             .replace("__DATA__", json.dumps(data))
@@ -401,7 +402,7 @@ for(const k of order){ if(!layers[k])continue;
   cb.onchange=()=>layers[k].forEach(o=>o.visible=cb.checked); lb.append(cb,document.createTextNode(k)); L.append(lb);}
 document.getElementById('dims').textContent=`${INFO.bj?'반닫이':'양문 여닫이'} · 외형 ${INFO.W}×${INFO.H}×${INFO.D} · 활 칸 ${INFO.cw}×${INFO.ch}×${INFO.cd} · 문 ${INFO.door} · 하부 ${INFO.lower} · 부린활 ${INFO.n}장`;
 const door=document.getElementById('door'), dv=document.getElementById('dv');
-if(INFO.bj){door.max=90; document.querySelector('#door + .row span:last-child').textContent='90°';}
+if(INFO.bj){door.max=INFO.bjmax; document.querySelector('#door + .row span:last-child').textContent=INFO.bjmax+'°';}
 door.oninput=()=>{const a=door.value*Math.PI/180; pivL.rotation.z=-a; pivR.rotation.z=a; pivB.rotation.x=a; dv.textContent=door.value+'°';};
 const cut=document.getElementById('cut'), cx=document.getElementById('cx');
 function setCut(){clips.length=0; if(cut.checked){clip.constant=-(cx.value/1000*INFO.W); clips.push(clip);}
