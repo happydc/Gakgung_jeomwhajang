@@ -105,7 +105,8 @@ const PYO = new URLSearchParams(location.search).get('pyo') || 'https://cdn.jsde
 const EZDXF = 'wheels/ezdxf-1.4.2-py3-none-any.whl';
 const PYFILES = ['jeomhwajang_core.py','jeomhwajang_3d.py','jeomhwajang_gui.py','jeomhwajang_preview.py','web_api.py'];
 const ASSETS = ['assets/vendor/three.min.js','assets/vendor/OrbitControls.js','assets/fonts/NanumGothic-Regular.ttf','assets/fonts/NanumGothic-Bold.ttf'];
-const STORE = 'jeomhwajang_web_v1';
+const STORE = 'jeomhwajang_web_v2';   // 직접 바꾼 값만 저장(기본값이 바뀌면 손대지 않은 항목은 새 기본값)
+const VER = '__VER__';
 const PICKS = [
   ['문 형식','door_type',[['double','양문 여닫이'],['bandaji','반닫이(앞으로 젖힘)']]],
   ['조절기·전원 인렛','ctl_side',[['L','왼쪽'],['R','오른쪽']]],
@@ -133,7 +134,7 @@ async function boot(){
     py.FS.mkdirTree('/app/assets/vendor'); py.FS.mkdirTree('/app/assets/fonts');
     const all = PYFILES.concat(ASSETS);
     await Promise.all(all.map(async f => {
-      const r = await fetch(f); if (!r.ok) throw new Error(f + ' 를 불러오지 못했습니다');
+      const r = await fetch(f + '?v=' + VER); if (!r.ok) throw new Error(f + ' 를 불러오지 못했습니다');
       py.FS.writeFile('/app/' + f, new Uint8Array(await r.arrayBuffer()));
     }));
     step(85, '도면 프로그램 시작 중… (글꼴 준비)');
@@ -151,7 +152,11 @@ async function boot(){
 }
 
 function load(){ try{ return JSON.parse(localStorage.getItem(STORE)) || null; }catch(e){ return null; } }
-function save(){ try{ localStorage.setItem(STORE, JSON.stringify(vals)); }catch(e){} }
+function save(){
+  const ch = {};
+  for (const k of Object.keys(vals)) if (String(vals[k]) !== String(UI.defaults[k])) ch[k] = vals[k];
+  try{ localStorage.setItem(STORE, JSON.stringify(ch)); }catch(e){}
+}
 
 function fmt(v){ return (typeof v === 'number') ? String(+v.toFixed(4)) : String(v); }
 
@@ -378,7 +383,7 @@ $('go').onclick = async () => {
     $('busy').style.display = 'none'; $('go').disabled = false;
   }
 };
-$('reset').onclick = () => { try{ localStorage.removeItem(STORE); }catch(e){} build(); };
+$('reset').onclick = () => { try{ localStorage.removeItem(STORE); localStorage.removeItem('jeomhwajang_web_v1'); }catch(e){} build(); };
 boot();
 </script>
 </body>

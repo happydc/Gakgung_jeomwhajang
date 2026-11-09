@@ -16,7 +16,7 @@ from jeomhwajang_preview import Preview, DESCR
 
 APP_TITLE = "각궁 점화장 제작도면 생성기"
 CREDIT = "@용현정 이동철"
-SETTINGS = os.path.join(os.path.expanduser("~"), ".gakgung_jeomhwajang_v2.json")
+SETTINGS = os.path.join(os.path.expanduser("~"), ".gakgung_jeomhwajang_v3.json")   # 직접 바꾼 값만 저장
 
 # 탭: [(키, 라벨, 단위)]
 TABS = [
@@ -307,12 +307,24 @@ class App(tk.Tk):
         messagebox.showerror(APP_TITLE, f"도면 생성 중 오류가 났습니다.\n\n{e}")
 
     def _save(self):
+        """기본값과 다른(직접 바꾼) 값만 저장 → 나중에 기본값이 바뀌면 손대지 않은 항목은 새 기본값을 따름"""
         try:
-            data = {"params": {k: v.get() for k, v in self.vars.items()},
-                    "door_type": self.dtype.get(), "heat": self.heat.get(), "rack": self.rack.get(),
-                    "gasket": self.gasket.get(), "ctl_side": self.side.get(),
-                    "faces": [n for n, b in self.face_vars.items() if b.get()],
-                    "outdir": self.outdir.get()}
+            ch = {}
+            for k, v in self.vars.items():
+                try:
+                    if abs(float(v.get()) - float(self.defaults[k])) > 1e-9:
+                        ch[k] = v.get()
+                except ValueError:
+                    pass
+            data = {"params": ch, "outdir": self.outdir.get()}
+            for key, var in (("door_type", self.dtype), ("heat", self.heat), ("rack", self.rack), ("ctl_side", self.side)):
+                if var.get() != str(self.defaults[key]):
+                    data[key] = var.get()
+            if self.gasket.get() != (str(self.defaults["gasket"]) == "1"):
+                data["gasket"] = self.gasket.get()
+            faces = [n for n, b in self.face_vars.items() if b.get()]
+            if faces != [f.strip() for f in str(self.defaults["film_faces"]).split(",") if f.strip()]:
+                data["faces"] = faces
             with open(SETTINGS, "w", encoding="utf-8") as fp:
                 json.dump(data, fp, ensure_ascii=False, indent=1)
         except Exception:
@@ -325,7 +337,7 @@ class App(tk.Tk):
             for k, v in data.get("params", {}).items():
                 if k in self.vars:
                     self.vars[k].set(v)
-            if data.get("heat"):
+            if data.get("heat") in ("film", "ptc"):
                 self.heat.set(data["heat"])
             if data.get("rack"):
                 self.rack.set(data["rack"])
@@ -335,8 +347,6 @@ class App(tk.Tk):
                 self.gasket.set(bool(data["gasket"]))
             if data.get("ctl_side") in ("L", "R"):
                 self.side.set(data["ctl_side"])
-            if data.get("heat") not in ("film", "ptc"):
-                self.heat.set("ptc")
             if "faces" in data:
                 for n, b in self.face_vars.items():
                     b.set(n in data["faces"])
