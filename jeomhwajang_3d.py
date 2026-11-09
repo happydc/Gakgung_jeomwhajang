@@ -200,7 +200,7 @@ def model(params=None):
             continue
         layer = next((GROUP[t] for t in ("handle", "door", "ctl", "mag", "gasket", "film", "ptc", "rack", "shelf",
                                           "cleat", "ins", "lining", "frame", "foot", "shell") if t in q["tags"]), "겉판")
-        door = "L" if "doorL" in q["tags"] else ("R" if "doorR" in q["tags"] else "")
+        door = "L" if "doorL" in q["tags"] else ("R" if "doorR" in q["tags"] else ("B" if "doorB" in q["tags"] else ""))
         out.append(dict(name=q["name"], mat=q["mat"], layer=layer, door=door, V=V, F=F))
     bows = {}
     for st in ("open", "closed"):
@@ -288,7 +288,7 @@ def write_viewer(path, meshes, d, bows):
                          o=0.55 if m["mat"] in ("ins",) else 1.0))
     info = dict(W=p["W"], H=p["H"], D=p["D"], t=p["t"], gap=p["gap"], n=int(p["n_bows"]),
                 limb=p["bow_limb"], cw=round(d["cw"]), ch=round(d["ch"]), cd=round(d["cd"]),
-                door=p["door_h"], lower=p["lower_h"])
+                door=p["door_h"], lower=p["lower_h"], bj=core.is_bandaji(), dz0=round(d["door_z"][0], 1))
     html = (VIEWER.replace("__THREE__", _vendor("three.min.js"))
             .replace("__ORBIT__", _vendor("OrbitControls.js"))
             .replace("__DATA__", json.dumps(data))
@@ -363,9 +363,9 @@ const sun=new THREE.DirectionalLight(0xffffff,0.55); sun.position.set(-1200,-200
 const sun2=new THREE.DirectionalLight(0xffffff,0.25); sun2.position.set(1500,1500,800); scene.add(sun2);
 const clip=new THREE.Plane(new THREE.Vector3(1,0,0),0); const clips=[];
 function dec(b64,T){const s=atob(b64),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new T(u.buffer);}
-const pivL=new THREE.Group(), pivR=new THREE.Group(), body=new THREE.Group();
+const pivL=new THREE.Group(), pivR=new THREE.Group(), pivB=new THREE.Group(), body=new THREE.Group();
 const xL=INFO.t+INFO.gap, xR=INFO.W-INFO.t-INFO.gap;
-pivL.position.set(xL,0,0); pivR.position.set(xR,0,0); scene.add(pivL,pivR,body);
+pivL.position.set(xL,0,0); pivR.position.set(xR,0,0); pivB.position.set(0,0,INFO.dz0); scene.add(pivL,pivR,pivB,body);
 const layers={};
 for(const m of DATA){
   const g=new THREE.BufferGeometry();
@@ -375,7 +375,8 @@ for(const m of DATA){
   const mesh=new THREE.Mesh(g,mat);
   const edges=new THREE.LineSegments(new THREE.EdgesGeometry(g,20),new THREE.LineBasicMaterial({color:0x5a4a35,transparent:true,opacity:0.35,clippingPlanes:clips}));
   const grp=new THREE.Group(); grp.add(mesh,edges);
-  if(m.d==='L'){grp.position.x=-xL;pivL.add(grp);} else if(m.d==='R'){grp.position.x=-xR;pivR.add(grp);} else body.add(grp);
+  if(m.d==='L'){grp.position.x=-xL;pivL.add(grp);} else if(m.d==='R'){grp.position.x=-xR;pivR.add(grp);}
+  else if(m.d==='B'){grp.position.z=-INFO.dz0;pivB.add(grp);} else body.add(grp);
   (layers[m.l]=layers[m.l]||[]).push(grp);
 }
 // 부린활
@@ -397,9 +398,10 @@ const L=document.getElementById('layers');
 for(const k of order){ if(!layers[k])continue;
   const lb=document.createElement('label'); const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=true;
   cb.onchange=()=>layers[k].forEach(o=>o.visible=cb.checked); lb.append(cb,document.createTextNode(k)); L.append(lb);}
-document.getElementById('dims').textContent=`외형 ${INFO.W}×${INFO.H}×${INFO.D} · 활 칸 ${INFO.cw}×${INFO.ch}×${INFO.cd} · 문 ${INFO.door} · 하부 ${INFO.lower} · 부린활 ${INFO.n}장`;
+document.getElementById('dims').textContent=`${INFO.bj?'반닫이':'양문 여닫이'} · 외형 ${INFO.W}×${INFO.H}×${INFO.D} · 활 칸 ${INFO.cw}×${INFO.ch}×${INFO.cd} · 문 ${INFO.door} · 하부 ${INFO.lower} · 부린활 ${INFO.n}장`;
 const door=document.getElementById('door'), dv=document.getElementById('dv');
-door.oninput=()=>{const a=door.value*Math.PI/180; pivL.rotation.z=-a; pivR.rotation.z=a; dv.textContent=door.value+'°';};
+if(INFO.bj){door.max=90; document.querySelector('#door + .row span:last-child').textContent='90°';}
+door.oninput=()=>{const a=door.value*Math.PI/180; pivL.rotation.z=-a; pivR.rotation.z=a; pivB.rotation.x=a; dv.textContent=door.value+'°';};
 const cut=document.getElementById('cut'), cx=document.getElementById('cx');
 function setCut(){clips.length=0; if(cut.checked){clip.constant=-(cx.value/1000*INFO.W); clips.push(clip);}
   scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});}

@@ -31,7 +31,8 @@ TABS = [
         ("gap", "문 둘레 틈", "mm"), ("plug_gap", "문 플러그 틈", "mm"), ("rebate", "양문 턱 너비", "mm"),
     ]),
     ("문", [
-        ("door_h", "문 높이(천판 아래부터)", "mm"), ("t_door", "문 겉판 두께", "mm"), ("hinges", "경첩 수(한 짝)", "개"),
+        ("door_h", "문 높이(천판 아래부터)", "mm"), ("t_door", "문 겉판 두께", "mm"), ("hinges", "양문: 경첩 수(한 짝)", "개"),
+        ("bj_cleat", "반닫이: 마구리 폭", "mm"), ("bj_hinges", "반닫이: 경첩 수", "개"), ("bj_stays", "반닫이: 지지대 수", "개"),
         ("mag_n", "자석 캐치 수(한 짝, 1~2)", "개"), ("mag_d", "자석 지름", "mm"), ("mag_off", "자석: 가운데→거리", "mm"),
     ]),
     ("하부·전원", [
@@ -116,10 +117,12 @@ class App(tk.Tk):
         # 주요 선택(탭 밖)
         top = ttk.LabelFrame(left, text="주요 선택")
         top.pack(fill="x", pady=(0, 8))
+        self.dtype = tk.StringVar(value=core.PARAM["door_type"])
         self.side = tk.StringVar(value=core.PARAM["ctl_side"])
         self.heat = tk.StringVar(value=core.PARAM["heat"])
         self.rack = tk.StringVar(value=core.PARAM["rack"])
         rows = [
+            ("문 형식", "door_type", self.dtype, (("double", "양문 여닫이"), ("bandaji", "반닫이(앞으로 젖힘)"))),
             ("온습도 조절기·전원 인렛", "ctl_side", self.side, (("L", "왼쪽"), ("R", "오른쪽"))),
             ("열원", "heat", self.heat, (("ptc", "PTC 히터(하부)"), ("film", "면상필름"))),
             ("거치대", "rack", self.rack, (("1", "① 삼각 받침"), ("2", "② 둥근 막대"), ("3", "③ 줌걸이"))),
@@ -219,6 +222,7 @@ class App(tk.Tk):
                 continue
             if strict and p[k] < 0:
                 raise ValueError(f"'{LABELS[k]}' 값은 0 이상이어야 합니다.")
+        p["door_type"] = self.dtype.get()
         p["heat"] = self.heat.get()
         p["rack"] = self.rack.get()
         p["gasket"] = "1" if self.gasket.get() else "0"
@@ -240,6 +244,7 @@ class App(tk.Tk):
     def _reset(self):
         for k, v in self.vars.items():
             v.set(f"{self.defaults[k]:g}")
+        self.dtype.set(self.defaults["door_type"])
         self.heat.set(self.defaults["heat"])
         self.rack.set(self.defaults["rack"])
         self.gasket.set(str(self.defaults["gasket"]) == "1")
@@ -304,7 +309,7 @@ class App(tk.Tk):
     def _save(self):
         try:
             data = {"params": {k: v.get() for k, v in self.vars.items()},
-                    "heat": self.heat.get(), "rack": self.rack.get(),
+                    "door_type": self.dtype.get(), "heat": self.heat.get(), "rack": self.rack.get(),
                     "gasket": self.gasket.get(), "ctl_side": self.side.get(),
                     "faces": [n for n, b in self.face_vars.items() if b.get()],
                     "outdir": self.outdir.get()}
@@ -324,6 +329,8 @@ class App(tk.Tk):
                 self.heat.set(data["heat"])
             if data.get("rack"):
                 self.rack.set(data["rack"])
+            if data.get("door_type") in ("double", "bandaji"):
+                self.dtype.set(data["door_type"])
             if "gasket" in data:
                 self.gasket.set(bool(data["gasket"]))
             if data.get("ctl_side") in ("L", "R"):

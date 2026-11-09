@@ -56,7 +56,11 @@ PARAM = dict(
     plug_gap=3.0,                   # 문 단열 플러그 둘레 틈
     rebate=12.0,                    # 양문 맞닿는 턱 너비
     # 문
+    door_type="double",             # double 양문 여닫이 | bandaji 반닫이(문판이 앞으로 젖혀 열림)
     door_h=550.0,                   # 문 높이(천판 아래에서 아래로)
+    bj_cleat=45.0,                  # 반닫이 문판 양끝 마구리 폭(0이면 통판)
+    bj_hinges=3,                    # 반닫이 경첩 수(문판 아래 끝)
+    bj_stays=2,                     # 반닫이 지지대 수(90°에서 멈춤)
     t_door=18.0,                    # 문 겉판 두께
     hinges=2,                       # 문 한 짝당 경첩 수
     mag_n=1,                        # 문 한 짝당 자석 캐치 수(1: 위, 2: 위·아래)
@@ -99,8 +103,8 @@ PARAM = dict(
 )
 
 FACE_NAMES = ("뒤", "위", "아래", "좌", "우")
-INT_KEYS = ("hinges", "n_bows", "mag_n")
-STR_KEYS = ("heat", "film_faces", "rack", "gasket", "ctl_side")
+INT_KEYS = ("hinges", "n_bows", "mag_n", "bj_hinges", "bj_stays")
+STR_KEYS = ("heat", "film_faces", "rack", "gasket", "ctl_side", "door_type")
 
 MAT = {
     "pine": ("레드파인", "#e8cc98"),
@@ -154,6 +158,10 @@ def notched_board(length, width, bnds, t, notch_odd):
 
 def rect(w, h):
     return [(0, 0), (w, 0), (w, h), (0, h)]
+
+
+def is_bandaji():
+    return str(P().get("door_type", "double")) == "bandaji"
 
 
 def gasket_on():
@@ -322,42 +330,80 @@ def build():
         for x in (t + s / 2, W - t - s / 2):
             A(_box("가스켓(옆)", x - gw / 2, x + gw / 2, td, yf, dz0, zt1, "gasket", tags={"gasket"}, keys=gkeys))
 
-    # --- 문(양문): 겉판 + 턱맞춤, 뒤에 단열 플러그
-    r = p["rebate"]
-    hd = td / 2
-    dk = {"t_door", "gap", "rebate", "door_h"}
-    oL = [(t + g, 0), (xm - g / 2, 0), (xm - g / 2, hd), (xm + r, hd), (xm + r, td), (t + g, td)]
-    oR = [(xm + g / 2, 0), (W - t - g, 0), (W - t - g, td), (xm + r + g, td), (xm + r + g, hd), (xm + g / 2, hd)]
     doorh = dz1 - dz0
-    dw_L, dw_R = xm + r - (t + g), (W - t - g) - (xm + g / 2)
-    A(_box("왼문 겉판", t + g, xm - g / 2, 0, hd, dz0, dz1, "pine", keys=dk, tags={"door", "doorL", "front", "noedge"}, oplan=oL,
-           bom=("문 겉판(왼)", "pine", doorh, dw_L, td, f"오른쪽 끝 뒤쪽 반 턱 {r:g}×{hd:g}"), dev=rect(dw_L, doorh)))
-    A(_box("왼문 겉판(턱)", t + g, xm + r, hd, td, dz0, dz1, "pine", keys=dk, tags={"door", "doorL", "noedge"}))
-    A(_box("오른문 겉판", xm + g / 2, W - t - g, 0, hd, dz0, dz1, "pine", keys=dk, tags={"door", "doorR", "front", "noedge"}, oplan=oR,
-           bom=("문 겉판(오른)", "pine", doorh, dw_R, td, f"왼쪽 끝 앞쪽 반 턱 {r:g}×{hd:g}"), dev=rect(dw_R, doorh)))
-    A(_box("오른문 겉판(턱)", xm + r + g, W - t - g, hd, td, dz0, dz1, "pine", keys=dk, tags={"door", "doorR", "noedge"}))
-    if gasket_on():
-        A(_box("턱 가스켓", xm + g / 2, xm + r, hd - d["gk"], hd, dz0 + 20, dz1 - 20, "gasket", tags={"door", "gasket"},
-               keys={"rebate", "gasket", "gasket_w"}))
     pg = p["plug_gap"]
     pz0, pz1 = d["rail1"] + pg, d["cz1"] - pg
-    for side, x0, x1 in (("왼", d["cx0"] + pg, xm - pg), ("오른", xm + pg, d["cx1"] - pg)):
-        tg = {"door", "doorL" if side == "왼" else "doorR", "plug"}
-        A(_box(f"{side}문 단열재", x0, x1, td, td + ti, pz0, pz1, "ins", keys={"t_ins", "plug_gap"}, tags=tg,
-               bom=("문 단열재", "ins", pz1 - pz0, x1 - x0, ti, "플러그")))
-        A(_box(f"{side}문 속판", x0, x1, td + ti, td + s, pz0, pz1, "cedar", keys={"t_in", "plug_gap"}, tags=tg,
-               bom=("문 속판", "cedar", pz1 - pz0, x1 - x0, tl, "플러그")))
-
-    # --- 자석 캐치(문틀 띠에 매립, 문 겉판 뒷면에 철판)
-    mz = [zt1 - s / 2]
-    if int(p["mag_n"]) >= 2:
-        mz.append(dz0 + s / 2)
     md = p["mag_d"]
-    for zc in mz:
-        for sgn in (-1, 1):
-            xc = xm + sgn * p["mag_off"]
+    if is_bandaji():
+        # --- 반닫이: 문판 한 장(양끝 마구리), 아래 끝 경첩으로 앞으로 젖혀 엶, 뒤에 단열 플러그 한 장
+        dk = {"t_door", "gap", "door_h", "door_type", "bj_cleat"}
+        x0d, x1d = t + g, W - t - g
+        cw = max(p["bj_cleat"], 0.0)
+        oB = [(x0d, 0), (x1d, 0), (x1d, td), (x0d, td)]
+        if cw > 0:
+            A(_box("문판", x0d + cw, x1d - cw, 0, td, dz0, dz1, "pine", keys=dk, tags={"door", "doorB", "front", "noedge"}, oplan=oB,
+                   bom=("문판(가운데)", "pine", x1d - x0d - 2 * cw + 2 * 10, doorh, td, "가로결, 양끝 촉 10"),
+                   dev=rect(x1d - x0d, doorh), dev_cleat=cw))
+            for nm, a_ in (("마구리(왼)", x0d), ("마구리(오른)", x1d - cw)):
+                A(_box(nm, a_, a_ + cw, 0, td, dz0, dz1, "pine", keys=dk, tags={"door", "doorB", "noedge"},
+                       bom=("문판 마구리", "pine", doorh, cw, td, "세로결, 촉홈 10")))
+        else:
+            A(_box("문판", x0d, x1d, 0, td, dz0, dz1, "pine", keys=dk, tags={"door", "doorB", "front", "noedge"}, oplan=oB,
+                   bom=("문판(통판)", "pine", x1d - x0d, doorh, td, "가로결"), dev=rect(x1d - x0d, doorh)))
+        tg = {"door", "doorB", "plug"}
+        A(_box("문 단열재", d["cx0"] + pg, d["cx1"] - pg, td, td + ti, pz0, pz1, "ins", keys={"t_ins", "plug_gap"}, tags=tg,
+               bom=("문 단열재", "ins", d["cx1"] - d["cx0"] - 2 * pg, pz1 - pz0, ti, "플러그")))
+        A(_box("문 속판", d["cx0"] + pg, d["cx1"] - pg, td + ti, td + s, pz0, pz1, "cedar", keys={"t_in", "plug_gap"}, tags=tg,
+               bom=("문 속판", "cedar", d["cx1"] - d["cx0"] - 2 * pg, pz1 - pz0, tl, "플러그")))
+        # 자석: 위 문틀 띠, 가운데 좌우 + (2개면) 양끝 쪽
+        mx = [xm - p["mag_off"], xm + p["mag_off"]]
+        if int(p["mag_n"]) >= 2:
+            mx += [d["cx0"] + 80, d["cx1"] - 80]
+        for xc in mx:
+            zc = zt1 - s / 2
             A(_box("자석 캐치", xc - md / 2, xc + md / 2, yf, yf + 6, zc - md / 2, zc + md / 2, "steel",
                    keys={"mag_n", "mag_d", "mag_off"}, tags={"mag"}, shape="disc"))
+        # 가로 원목 손잡이(위 가운데)
+        A(_box("원목 손잡이", xm - 60, xm + 60, -22, 0, dz1 - 80, dz1 - 60, "ply", tags={"door", "doorB", "handle"},
+               keys={"door_h", "door_type"}))
+        hw = []
+        nh = max(int(p["bj_hinges"]), 1)
+        for k in range(nh):
+            xc = x0d + 80 + (x1d - x0d - 160) * (k / (nh - 1) if nh > 1 else 0.5)
+            hw.append(("경첩B", xc, dz0))
+        d["hardware"] = hw
+    else:
+        r = p["rebate"]
+        hd = td / 2
+        dk = {"t_door", "gap", "rebate", "door_h"}
+        oL = [(t + g, 0), (xm - g / 2, 0), (xm - g / 2, hd), (xm + r, hd), (xm + r, td), (t + g, td)]
+        oR = [(xm + g / 2, 0), (W - t - g, 0), (W - t - g, td), (xm + r + g, td), (xm + r + g, hd), (xm + g / 2, hd)]
+        dw_L, dw_R = xm + r - (t + g), (W - t - g) - (xm + g / 2)
+        A(_box("왼문 겉판", t + g, xm - g / 2, 0, hd, dz0, dz1, "pine", keys=dk, tags={"door", "doorL", "front", "noedge"}, oplan=oL,
+               bom=("문 겉판(왼)", "pine", doorh, dw_L, td, f"오른쪽 끝 뒤쪽 반 턱 {r:g}×{hd:g}"), dev=rect(dw_L, doorh)))
+        A(_box("왼문 겉판(턱)", t + g, xm + r, hd, td, dz0, dz1, "pine", keys=dk, tags={"door", "doorL", "noedge"}))
+        A(_box("오른문 겉판", xm + g / 2, W - t - g, 0, hd, dz0, dz1, "pine", keys=dk, tags={"door", "doorR", "front", "noedge"}, oplan=oR,
+               bom=("문 겉판(오른)", "pine", doorh, dw_R, td, f"왼쪽 끝 앞쪽 반 턱 {r:g}×{hd:g}"), dev=rect(dw_R, doorh)))
+        A(_box("오른문 겉판(턱)", xm + r + g, W - t - g, hd, td, dz0, dz1, "pine", keys=dk, tags={"door", "doorR", "noedge"}))
+        if gasket_on():
+            A(_box("턱 가스켓", xm + g / 2, xm + r, hd - d["gk"], hd, dz0 + 20, dz1 - 20, "gasket", tags={"door", "gasket"},
+                   keys={"rebate", "gasket", "gasket_w"}))
+        for side, x0, x1 in (("왼", d["cx0"] + pg, xm - pg), ("오른", xm + pg, d["cx1"] - pg)):
+            tg = {"door", "doorL" if side == "왼" else "doorR", "plug"}
+            A(_box(f"{side}문 단열재", x0, x1, td, td + ti, pz0, pz1, "ins", keys={"t_ins", "plug_gap"}, tags=tg,
+                   bom=("문 단열재", "ins", pz1 - pz0, x1 - x0, ti, "플러그")))
+            A(_box(f"{side}문 속판", x0, x1, td + ti, td + s, pz0, pz1, "cedar", keys={"t_in", "plug_gap"}, tags=tg,
+                   bom=("문 속판", "cedar", pz1 - pz0, x1 - x0, tl, "플러그")))
+
+        # --- 자석 캐치(문틀 띠에 매립, 문 겉판 뒷면에 철판)
+        mz = [zt1 - s / 2]
+        if int(p["mag_n"]) >= 2:
+            mz.append(dz0 + s / 2)
+        for zc in mz:
+            for sgn in (-1, 1):
+                xc = xm + sgn * p["mag_off"]
+                A(_box("자석 캐치", xc - md / 2, xc + md / 2, yf, yf + 6, zc - md / 2, zc + md / 2, "steel",
+                       keys={"mag_n", "mag_d", "mag_off"}, tags={"mag"}, shape="disc"))
 
     # --- 선반(착탈, 통풍 슬롯) + 선반받이
     zs0, zs1 = d["zs0"], d["zs1"]
@@ -442,21 +488,21 @@ def build():
                bom=("줌 받침", "ply", L - p["rack_back"] + 5, cw, chh, f"윗면 R{p['rack_r']:g}")))
         d["supports"] = [(0.0, rt)]
 
-    # --- 원목 손잡이(3D·평단면용)
-    zc_h = (dz0 + dz1) / 2
-    for sgn, tg in ((-1, "doorL"), (1, "doorR")):
-        xc = xm + sgn * 40
-        A(_box("원목 손잡이", xc - 6, xc + 6, -22, 0, zc_h - 50, zc_h + 50, "ply", tags={"door", tg, "handle"},
-               keys={"door_h"}))
-
-    # --- 철물(정면 표시용)
-    hw = []
-    nh = max(int(p["hinges"]), 1)
-    for k in range(nh):
-        zc = dz0 + 60 + (doorh - 120) * (k / (nh - 1) if nh > 1 else 0.5)
-        for x in (t, W - t):
-            hw.append(("경첩", x, zc))
-    d["hardware"] = hw
+    if not is_bandaji():
+        # --- 원목 손잡이(3D·평단면용)
+        zc_h = (dz0 + dz1) / 2
+        for sgn, tg in ((-1, "doorL"), (1, "doorR")):
+            xc = xm + sgn * 40
+            A(_box("원목 손잡이", xc - 6, xc + 6, -22, 0, zc_h - 50, zc_h + 50, "ply", tags={"door", tg, "handle"},
+                   keys={"door_h"}))
+        # --- 철물(정면 표시용)
+        hw = []
+        nh = max(int(p["hinges"]), 1)
+        for k in range(nh):
+            zc = dz0 + 60 + (doorh - 120) * (k / (nh - 1) if nh > 1 else 0.5)
+            for x in (t, W - t):
+                hw.append(("경첩", x, zc))
+        d["hardware"] = hw
     return parts, d
 
 
@@ -656,14 +702,19 @@ def draw_front(ax, parts, d, opened):
         for q in parts:
             if "back" in q["tags"]:
                 draw_holes(ax, q, ls=":", fc="none")
-        for _, x, zc in d["hardware"]:          # 맞경첩: 문 옆면에 묻히고 축만 보임
-            xg = x + (p["gap"] / 2 if x < d["xm"] else -p["gap"] / 2)
-            ax.add_patch(Rectangle((xg - 3, zc - 32), 6, 64, fc="#8a7a5a", ec="k", lw=0.3, zorder=5))
         xm = d["xm"]
         dz0, dz1 = d["door_z"]
-        zc = (dz0 + dz1) / 2
-        for sgn in (-1, 1):
-            ax.add_patch(Rectangle((xm + sgn * 40 - 6, zc - 50), 12, 100, fc="#6b4b2a", ec="k", lw=0.3, zorder=5))
+        if is_bandaji():
+            for _, xc, zc in d["hardware"]:     # 맞경첩: 문판 아래 끝, 축만 보임
+                ax.add_patch(Rectangle((xc - 32, zc - 4), 64, 6, fc="#8a7a5a", ec="k", lw=0.3, zorder=5))
+            ax.add_patch(Rectangle((xm - 60, dz1 - 80), 120, 20, fc="#6b4b2a", ec="k", lw=0.3, zorder=5))
+        else:
+            for _, x, zc in d["hardware"]:      # 맞경첩: 문 옆면에 묻히고 축만 보임
+                xg = x + (p["gap"] / 2 if x < d["xm"] else -p["gap"] / 2)
+                ax.add_patch(Rectangle((xg - 3, zc - 32), 6, 64, fc="#8a7a5a", ec="k", lw=0.3, zorder=5))
+            zc = (dz0 + dz1) / 2
+            for sgn in (-1, 1):
+                ax.add_patch(Rectangle((xm + sgn * 40 - 6, zc - 50), 12, 100, fc="#6b4b2a", ec="k", lw=0.3, zorder=5))
 
 
 def draw_bows(ax, d, view, n_all=True):
@@ -760,8 +811,10 @@ def sheet_assembly(pdf, parts, d):
     p = P()
     W, H, D = p["W"], p["H"], p["D"]
     m = 60
-    s = pick_scale(2 * (W + 2 * m) + (D + 2 * m), H + D + 4 * m, 380, 235)
-    fig, ax0 = new_sheet("조립도", f"양문 여닫이 · 부린활 {int(p['n_bows'])}장 · W{W:g}×H{H:g}×D{D:g}", 1, 5, f"1:{s}")
+    ext = p["door_h"] + 20 if is_bandaji() else 0.0
+    s = pick_scale(2 * (W + 2 * m) + (D + 2 * m + ext), H + D + 4 * m, 380, 235)
+    kind = "반닫이" if is_bandaji() else "양문 여닫이"
+    fig, ax0 = new_sheet("조립도", f"{kind} · 부린활 {int(p['n_bows'])}장 · W{W:g}×H{H:g}×D{D:g}", 1, 5, f"1:{s}")
     gx = 22
     top = 268
     # 정면도(문 닫힘)
@@ -793,13 +846,21 @@ def sheet_assembly(pdf, parts, d):
     # 측단면도
     xc = rack_xcut(d)
     gx3 = gx2 + (W + 2 * m) / s + 6
-    a3 = view_axes(fig, gx3, y_front, (-m, D + m), (-m * 0.6, H + m * 0.4), s)
+    a3 = view_axes(fig, gx3, y_front, (-m - ext, D + m), (-m * 0.6, H + m * 0.4), s)
     draw_side(a3, parts, d, xc)
     draw_bows(a3, d, "side")
+    if is_bandaji():     # 90° 열린 문판(점선)과 경첩 축
+        dz0, dz1 = d["door_z"]
+        hh = dz1 - dz0
+        a3.add_patch(Rectangle((-hh, dz0), hh, p["t_door"], fill=False, ec="#b5651d", lw=0.7, ls="--", zorder=8))
+        a3.add_patch(Circle((0, dz0), 6, fill=False, ec="#b5651d", lw=0.7, zorder=8))
+        th_ = np.linspace(0, math.pi / 2, 30)
+        a3.plot(-hh * np.sin(th_), dz0 + hh * np.cos(th_), color="#b5651d", lw=0.4, ls=":")
+        a3.text(-hh / 2, dz0 + 30, "열린 문판 (90°, 지지대)", fontsize=5, ha="center", color="#b5651d")
     dim(a3, (0, H), (D, H), 6, f"{D:g}")
     dim(a3, (d["cy1"] - d["rack_len"], d["rack_top"] + 30), (d["cy1"], d["rack_top"] + 30), 2, f"{d['rack_len']:.0f}", fs=5)
     dim(a3, (d["cy0"], d["zs1"]), (d["cy1"], d["zs1"]), -2, f"안 {d['cd']:.0f}", fs=5)
-    ax0.text(gx3 + m / s, y_front + (H + m * 0.6) / s + 11, "측단면도 A-A", fontsize=8, weight="bold")
+    ax0.text(gx3 + (m + ext) / s, y_front + (H + m * 0.6) / s + 11, "측단면도 A-A", fontsize=8, weight="bold")
     # 평단면도
     zc = d["rack_top"] - (p["r1_h"] / 2 if p["rack"] == "1" else 10)
     yp = y_front - (D + 2 * m) / s - 4
@@ -879,6 +940,9 @@ def sheet_parts(pdf, parts, d):
                     a.add_patch(Circle((hx + sg * p["recp_pitch"] / 2, hz), max(p["recp_hole"], 5) / 2, fc="w", ec="k", lw=0.3))
             dim(a, (0, hz), (hx - hw_ / 2, hz), 2, f"{hx - hw_ / 2:.0f}", fs=4.5)
             dim(a, (hx + hw_ / 2 + 4, 0), (hx + hw_ / 2 + 4, hz - hh_ / 2), -1.5, f"{hz - hh_ / 2:.0f}", fs=4.5)
+        if q.get("dev_cleat"):
+            for xx in (q["dev_cleat"], w - q["dev_cleat"]):
+                a.plot([xx, xx], [0, h], color="k", lw=0.5)
         for sx_, sy_, sw_, sh_ in q.get("dev_slots", []):
             a.add_patch(Rectangle((sx_, sy_), sw_, sh_, fc="w", ec="k", lw=0.3))
         dim(a, (0, h), (w, h), 3, f"{w:.0f}", fs=5.5)
@@ -893,8 +957,9 @@ def sheet_parts(pdf, parts, d):
     ax0.text(20, 52, f"사개: 깊이 {p['D']:g} 을 {len(bn) - 1}구간(손 간격 {bn[1]:.1f})으로 나눔. 천판·지판은 짝수 구간(앞뒤 끝 포함)이 손, "
              f"옆판은 홀수 구간이 손. 손 길이 = 겉판 두께 {p['t']:g}.", fontsize=6)
     ax0.text(20, 46, f"뒷판·아래 앞판은 옆판·천판·지판 안쪽에 홈({p['dado']:g}) 파서 끼움 — 재단표 치수에 홈 깊이 포함. 타공 위치는 앞(안쪽)에서 본 치수.", fontsize=6)
-    ax0.text(20, 40, "문 겉판: 왼문 오른쪽 끝 뒤쪽 반, 오른문 왼쪽 끝 앞쪽 반을 턱으로 깎아 겹침(턱맞춤) — 상세도 참조.  "
-             f"선반: 선반받이({p['cleat']:g}각) 위에 얹기만 함(착탈), 통풍 슬롯 폭 {p['vent_w']:g} 간격 {p['vent_pitch']:g}.", fontsize=6)
+    ax0.text(20, 40, (f"반닫이 문판: 가운데 판(가로결) 양끝에 마구리 {p['bj_cleat']:g}(세로결)를 촉(10)으로 끼움 — 풀칠은 가운데만.  " if is_bandaji() else
+             "문 겉판: 왼문 오른쪽 끝 뒤쪽 반, 오른문 왼쪽 끝 앞쪽 반을 턱으로 깎아 겹침(턱맞춤) — 상세도 참조.  ")
+             + f"선반: 선반받이({p['cleat']:g}각) 위에 얹기만 함(착탈), 통풍 슬롯 폭 {p['vent_w']:g} 간격 {p['vent_pitch']:g}.", fontsize=6)
     pdf.savefig(fig); plt.close(fig)
 
 
@@ -984,7 +1049,7 @@ def sheet_rack(pdf, parts, d, no, total):
 
 def sheet_seal(pdf, parts, d, no, total):
     p = P()
-    fig, ax0 = new_sheet("밀폐·단열 상세", "문받이 · 양문 턱맞춤 · 가스켓 · 벽 구성", no, total, "1:1")
+    fig, ax0 = new_sheet("밀폐·단열 상세", "문받이 · " + ("반닫이 경첩부" if is_bandaji() else "양문 턱맞춤") + " · 가스켓 · 벽 구성", no, total, "1:1")
     zc = (d["door_z"][0] + d["door_z"][1]) / 2
     t, td = p["t"], p["t_door"]
     span = td + d["s"] + 45
@@ -1001,15 +1066,25 @@ def sheet_seal(pdf, parts, d, no, total):
     label(b1, (t + d["s"] / 2, -d["yfront"] - p["frame_d"] / 2), "문틀 띠", (16, -2))
     label(b1, (t + d["s"] + 25, -td - 5), "문 플러그", (10, -14))
     xm = d["xm"]
-    b2 = view_axes(fig, 140, 165, (xm - 55, xm + 55), (-span, 10), sd)
-    draw_plan(b2, parts, d, zc)
-    dim(b2, (xm + p["gap"] / 2, -td), (xm + p["rebate"], -td), -4, f"턱 {p['rebate']:g}", fs=5.5)
-    dim(b2, (xm - 50, 0), (xm - 50, -td / 2), 4, f"{td / 2:g}", fs=5.5)
-    if gasket_on():
-        label(b2, (xm + p["rebate"] / 2, -td / 2), "가스켓", (14, 6))
-    label(b2, (xm - 30, -td / 4), "왼문", (-6, 8))
-    label(b2, (xm + 30, -td / 4), "오른문", (4, 8))
-    ax0.text(140, 165 + (span + 10) / sd + 6, "ⓑ 양문 맞닿는 곳 평단면", fontsize=8, weight="bold")
+    if is_bandaji():
+        dz0 = d["door_z"][0]
+        b2 = view_axes(fig, 140, 165, (-50, span - 20), (dz0 - 50, dz0 + span - 40), sd)
+        draw_side(b2, parts, d, xm - 100)
+        b2.add_patch(Rectangle((-60, dz0), 60, td, fill=False, ec="#b5651d", lw=0.8, ls="--", zorder=8))
+        b2.add_patch(Circle((0, dz0), 3, fill=False, ec="#b5651d", lw=0.8, zorder=8))
+        label(b2, (0, dz0), "경첩 축(앞면 선)", (-8, -10))
+        label(b2, (-30, dz0 + td), "90° 열린 문판", (-4, 10))
+        ax0.text(140, 165 + (span + 10) / sd + 6, "ⓑ 반닫이 경첩부 측단면", fontsize=8, weight="bold")
+    else:
+        b2 = view_axes(fig, 140, 165, (xm - 55, xm + 55), (-span, 10), sd)
+        draw_plan(b2, parts, d, zc)
+        dim(b2, (xm + p["gap"] / 2, -td), (xm + p["rebate"], -td), -4, f"턱 {p['rebate']:g}", fs=5.5)
+        dim(b2, (xm - 50, 0), (xm - 50, -td / 2), 4, f"{td / 2:g}", fs=5.5)
+        if gasket_on():
+            label(b2, (xm + p["rebate"] / 2, -td / 2), "가스켓", (14, 6))
+        label(b2, (xm - 30, -td / 4), "왼문", (-6, 8))
+        label(b2, (xm + 30, -td / 4), "오른문", (4, 8))
+        ax0.text(140, 165 + (span + 10) / sd + 6, "ⓑ 양문 맞닿는 곳 평단면", fontsize=8, weight="bold")
     b3 = view_axes(fig, 30, 45, (-10, span), (p["H"] - span, p["H"] + 10), sd)
     draw_side(b3, parts, d, xm - 100)
     label(b3, (span - 20, p["H"] - t / 2), "천판", (6, 4))
@@ -1029,10 +1104,13 @@ def sheet_seal(pdf, parts, d, no, total):
         f"• 문틀 띠: 단열층 앞 둘레에 원목 띠(깊이 {p['frame_d']:g}) — 문이 닿는 면",
         f"• 문: 겉판 {td:g} 뒤에 단열 플러그(단열재 + 속판), 둘레 {p['plug_gap']:g} 작게",
         f"• 문받이: {gtxt}",
-        f"• 양문: 턱맞춤 {p['rebate']:g} (두께 반씩 깎아 겹침)" + (" + 턱에 가스켓" if gasket_on() else ""),
+        (f"• 반닫이 문판: 한 장, 양끝 마구리 {p['bj_cleat']:g}(촉 끼움, 휨 방지)" if is_bandaji()
+         else f"• 양문: 턱맞춤 {p['rebate']:g} (두께 반씩 깎아 겹침)" + (" + 턱에 가스켓" if gasket_on() else "")),
+        (f"• 경첩 {int(p['bj_hinges'])}개를 문판 아래 끝 앞면 선에 축이 오게, 지지대 {int(p['bj_stays'])}개로 90°에서 멈춤" if is_bandaji()
+         else f"• 경첩은 문 한 짝당 {int(p['hinges'])}개 (맞경첩, 옆면 매립)"),
         f"• 자석 캐치 Ø{p['mag_d']:g}: 문틀 띠(위{'·아래' if int(p['mag_n']) >= 2 else ''})에 매립,",
         f"   가운데에서 좌우 {p['mag_off']:g}, 문 겉판 뒷면에 철판 — 저절로 열리지 않음",
-        f"• 문 둘레 틈 {p['gap']:g}, 경첩은 문 한 짝당 {int(p['hinges'])}개",
+        f"• 문 둘레 틈 {p['gap']:g}",
         "• 전선·센서 구멍은 지름 8 이하, 내열 실리콘으로 메움",
         "• 단열재: 압출 폴리스티렌 또는 열반사 단열재",
     ]
@@ -1062,9 +1140,15 @@ def hardware_rows(d):
     nh = max(int(p["hinges"]), 1)
     nm_ = max(int(p["mag_n"]), 1)
     side = "왼쪽" if p["ctl_side"] != "R" else "오른쪽"
-    r = [("맞경첩(황동)", nh * 2, f"문 한 짝당 {nh}, 문·옆판 옆면에 파서 묻음(겉에 철물 없음)"),
-         ("자석 캐치(매립)·철판", nm_ * 2, f"Ø{p['mag_d']:g}, 문 한 짝당 {nm_}"),
-         ("원목 손잡이", 2, "문 가운데 쪽, 뒤에서 나사")]
+    if is_bandaji():
+        r = [("맞경첩(황동)", int(p["bj_hinges"]), "문판 아래 끝, 축이 앞면 선에 오게 파서 묻음"),
+             ("문판 지지대(스테이)", int(p["bj_stays"]), "양옆, 문판을 90°에서 받침"),
+             ("자석 캐치(매립)·철판", 2 * nm_, f"Ø{p['mag_d']:g}, 위 문틀 띠"),
+             ("원목 손잡이(가로)", 1, "문판 위 가운데, 뒤에서 나사")]
+    else:
+        r = [("맞경첩(황동)", nh * 2, f"문 한 짝당 {nh}, 문·옆판 옆면에 파서 묻음(겉에 철물 없음)"),
+             ("자석 캐치(매립)·철판", nm_ * 2, f"Ø{p['mag_d']:g}, 문 한 짝당 {nm_}"),
+             ("원목 손잡이", 2, "문 가운데 쪽, 뒤에서 나사")]
     if gasket_on():
         r.append(("D형 가스켓", 1, f"{p['gasket_w']:g}×{p['gasket_h']:g}, 약 {gasket_len(d) / 1000:.1f} m"))
     r.append(("온습도 조절기(XM-18형)", 1, f"아래 앞판 {side}, 테두리 {p['bezel_w']:g}×{p['bezel_h']:g}, 타공 {p['thermo_w']:g}×{p['thermo_h']:g}, 깊이 {p['ctl_depth']:g}"))
@@ -1083,7 +1167,8 @@ def gasket_len(d):
     p = P()
     W, t, s = p["W"], p["t"], d["s"]
     dz0, dz1 = d["door_z"]
-    return (W - 2 * t) + (W - 2 * t - 2 * s) + 2 * (dz1 - dz0) + (dz1 - dz0)
+    meet = 0 if is_bandaji() else (dz1 - dz0)
+    return (W - 2 * t) + (W - 2 * t - 2 * s) + 2 * (dz1 - dz0) + meet
 
 
 def sheet_bom(pdf, parts, d):
@@ -1114,6 +1199,7 @@ def sheet_bom(pdf, parts, d):
     info = [
         f"외형 W{p['W']:g} × H{p['H']:g} × D{p['D']:g}",
         f"안쪽(활 칸) {d['cw']:.0f} × {d['ch']:.0f} × {d['cd']:.0f}",
+        f"문 형식 {'반닫이(문판 앞으로 젖힘)' if is_bandaji() else '양문 여닫이'}",
         f"문 높이 {d['door_z'][1] - d['door_z'][0]:.0f} (천판 아래부터), 문 열린 높이 {d['open_h']:.0f}",
         f"하부 공간 안높이 {p['lower_h']:g}, 선반 윗면 {d['zs1']:.0f} / 문 하단 {d['door_z'][0]:.0f}",
         f"부린활 {int(p['n_bows'])}장 × {p['bow_pitch']:g} (궁대 포함)",
@@ -1170,6 +1256,9 @@ def to_dxf(path, parts, d):
             x, y, rowh = 0.0, y - rowh - 80, 0.0
         lay = "RACK" if q["mat"] == "ply" else "CUT"
         msp.add_lwpolyline([(px + x, py + y - h) for px, py in pts], close=True, dxfattribs={"layer": lay})
+        if q.get("dev_cleat"):
+            for xx in (q["dev_cleat"], w - q["dev_cleat"]):
+                msp.add_line((x + xx, y - h), (x + xx, y), dxfattribs={"layer": "CUT"})
         for sx_, sy_, sw_, sh_ in q.get("dev_slots", []):
             msp.add_lwpolyline([(x + sx_, y - h + sy_), (x + sx_ + sw_, y - h + sy_), (x + sx_ + sw_, y - h + sy_ + sh_), (x + sx_, y - h + sy_ + sh_)],
                                close=True, dxfattribs={"layer": "CUT"})
@@ -1256,6 +1345,10 @@ def validate():
             e.append("PTC 히터가 온습도 조절기 몸체와 겹칩니다. 조절기 위치나 히터 크기를 확인하세요.")
     if p["rack"] not in ("1", "2", "3"):
         e.append("거치대 형식은 1, 2, 3 중 하나입니다.")
+    if is_bandaji() and p["bj_cleat"] * 2 > d["cw"] / 2:
+        e.append("반닫이 마구리 폭이 너무 큽니다.")
+    if p.get("door_type") not in ("double", "bandaji"):
+        e.append("문 형식은 double(양문) 또는 bandaji(반닫이)입니다.")
     if p["rebate"] >= d["cw"] / 4:
         e.append("턱 너비가 너무 큽니다.")
     return e
