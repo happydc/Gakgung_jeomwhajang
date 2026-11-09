@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>각궁 점화장 제작도면 생성기 — @용현정 이동철</title>
+<link rel="icon" href="assets/icon.png">
+<style>
+:root{--bg:#f6f2ea;--card:#fffdf8;--ink:#2e261d;--mut:#7a6e60;--line:#ddd2c0;--acc:#b5651d;--acc2:#5a3d1e;--ok:#2a7a2a;--bad:#c62828;--tab:#e7dcc9}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:14px 20px 6px}
+header h1{font-size:20px;margin:0}
+header .credit{color:var(--acc2);font-weight:700}
+header .ver{color:var(--mut);font-size:12px;margin-left:auto}
+main{display:grid;grid-template-columns:minmax(380px,460px) 1fr;gap:16px;padding:8px 20px 24px;align-items:start}
+@media (max-width:980px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card h2{font-size:13px;margin:0 0 8px;color:var(--acc2)}
+.pick{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center}
+.pick .lab{font-weight:700;white-space:nowrap}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg label{border:1px solid var(--line);border-radius:6px;padding:4px 10px;cursor:pointer;background:#fff;user-select:none}
+.seg input{display:none}
+.seg input:checked+span{color:#fff}
+.seg label:has(input:checked){background:var(--acc);border-color:var(--acc);color:#fff}
+.tabs{display:flex;flex-wrap:wrap;gap:3px;margin:12px 0 0}
+.tabs button{border:1px solid var(--line);border-bottom:none;background:var(--tab);color:#4a3a28;font:700 13px/1 inherit;padding:9px 12px;border-radius:7px 7px 0 0;cursor:pointer}
+.tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.panel{border:1px solid var(--line);border-radius:0 8px 8px 8px;background:#fff;padding:10px 12px}
+.fields{display:grid;grid-template-columns:1fr 92px 34px;gap:5px 8px;align-items:center}
+.fields label{text-align:right;color:#3d3328}
+.fields input{width:100%;padding:4px 6px;border:1px solid #cdbfa8;border-radius:5px;text-align:right;font:inherit}
+.fields input:focus{outline:2px solid #e8b98c;border-color:var(--acc)}
+.fields input.err{border-color:var(--bad);background:#fff4f4}
+.fields .u{color:var(--mut);font-size:12px}
+.extra{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);display:flex;flex-wrap:wrap;gap:6px 14px}
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+button.go{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:10px 18px;font:700 15px inherit;cursor:pointer}
+button.go:disabled{opacity:.5;cursor:default}
+button.sub{background:#fff;border:1px solid #c9bba4;border-radius:8px;padding:9px 14px;font:inherit;cursor:pointer}
+#status{color:var(--mut);margin-top:8px;min-height:20px}
+#cv{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:8px;background:#fbf8f2}
+#desc{min-height:22px;color:#7a2020;margin:6px 2px}
+#chk{margin:4px 2px 0;font-size:13px}
+#chk .bad{color:var(--bad)} #chk .ok{color:var(--ok)}
+#files{display:none;margin-top:14px}
+#files ul{list-style:none;padding:0;margin:6px 0 0}
+#files li{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #eee5d6}
+#files a{color:var(--acc2);font-weight:700;text-decoration:none}
+#files .k{color:var(--mut);font-size:12px}
+#load{position:fixed;inset:0;background:#f6f2eaee;display:flex;align-items:center;justify-content:center;z-index:9}
+#load .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px 28px;max-width:440px;text-align:center}
+#load .bar{height:8px;background:#eadfcd;border-radius:4px;margin:14px 0 8px;overflow:hidden}
+#load .bar i{display:block;height:100%;width:5%;background:var(--acc);transition:width .4s}
+#busy{display:none;position:fixed;inset:0;background:#0003;z-index:8;align-items:center;justify-content:center}
+#busy .box{background:var(--card);border-radius:10px;padding:18px 24px;border:1px solid var(--line)}
+footer{color:var(--mut);font-size:12px;padding:0 20px 20px}
+</style>
+</head>
+<body>
+<header>
+  <h1>각궁 점화장 제작도면 생성기</h1>
+  <span class="credit">@용현정 이동철</span>
+  <span class="ver">웹 버전 · 설치 없이 브라우저에서 실행</span>
+</header>
+<main>
+  <section>
+    <div class="card">
+      <h2>주요 선택</h2>
+      <div class="pick" id="pick"></div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div class="panel" id="panel"></div>
+    <div class="actions">
+      <button class="go" id="go" disabled>도면 · 3D 생성</button>
+      <button class="sub" id="reset">기본값</button>
+      <label><input type="checkbox" id="want3d" checked> 3D 모델·3D 뷰어도 생성</label>
+    </div>
+    <div id="status"></div>
+    <div class="card" id="files">
+      <h2>만든 파일</h2>
+      <div class="mut" style="font-size:12px">파일 이름을 누르면 내려받습니다.</div>
+      <ul id="flist"></ul>
+    </div>
+  </section>
+  <section class="card">
+    <h2>미리보기 — 항목에 마우스를 올리거나 누르면 해당 부분이 빨간색으로 표시됩니다</h2>
+    <canvas id="cv" width="1200" height="860"></canvas>
+    <div id="desc"></div>
+    <div id="chk"></div>
+  </section>
+</main>
+<footer>도면 계산은 브라우저 안에서만 이루어지며 입력값은 이 컴퓨터의 브라우저에만 저장됩니다. · 글꼴: 나눔고딕(OFL) · 3D: three.js(MIT) · 실행: Pyodide</footer>
+
+<div id="load"><div class="box">
+  <b style="font-size:16px">프로그램을 불러오는 중입니다</b>
+  <div class="bar"><i id="lbar"></i></div>
+  <div id="lmsg" style="color:#7a6e60">처음 한 번은 20~30초 걸립니다. 다음부터는 빨라집니다.</div>
+</div></div>
+<div id="busy"><div class="box" id="busymsg">도면을 만드는 중…</div></div>
+
+<script>
+const PYO = new URLSearchParams(location.search).get('pyo') || 'https://cdn.jsdelivr.net/pyodide/v0.27.8/full/';
+const EZDXF = 'wheels/ezdxf-1.4.2-py3-none-any.whl';
+const PYFILES = ['jeomhwajang_core.py','jeomhwajang_3d.py','jeomhwajang_gui.py','jeomhwajang_preview.py','web_api.py'];
+const ASSETS = ['assets/vendor/three.min.js','assets/vendor/OrbitControls.js','assets/fonts/NanumGothic-Regular.ttf','assets/fonts/NanumGothic-Bold.ttf'];
+const STORE = 'jeomhwajang_web_v1';
+const PICKS = [
+  ['문 형식','door_type',[['double','양문 여닫이'],['bandaji','반닫이(앞으로 젖힘)']]],
+  ['조절기·전원 인렛','ctl_side',[['L','왼쪽'],['R','오른쪽']]],
+  ['열원','heat',[['ptc','PTC 히터(하부)'],['film','면상필름']]],
+  ['거치대','rack',[['1','① 삼각 받침'],['2','② 둥근 막대'],['3','③ 줌걸이']]],
+];
+const MATC = {pine:'#e8cc98',cedar:'#f5e6c8',ins:'#f2b8c6',ply:'#c9a46a',steel:'#555555',film:'#e03030',gasket:'#222222',ptc:'#9aa3ad'};
+const HL = '#d62828';
+const BOW_KEYS = new Set(['bow_open_span','bow_open_h','bow_ring_w','bow_ring_h','bow_limb','clear','n_bows','bow_pitch']);
+let py, api, UI, vals = {}, curTab = 0, hover = null, last = null, timer = null;
+const $ = id => document.getElementById(id);
+function step(p, m){ $('lbar').style.width = p + '%'; if (m) $('lmsg').textContent = m; }
+
+async function boot(){
+  try{
+    step(5, 'Pyodide 불러오는 중…');
+    await new Promise((res, rej) => { const s = document.createElement('script'); s.src = PYO + 'pyodide.js'; s.onload = res; s.onerror = () => rej(new Error('Pyodide를 불러오지 못했습니다. 인터넷 연결을 확인하세요.')); document.head.appendChild(s); });
+    py = await loadPyodide({indexURL: PYO});
+    step(30, '계산 라이브러리(numpy·matplotlib) 불러오는 중…');
+    await py.loadPackage(['numpy','matplotlib','micropip']);
+    step(60, 'DXF 라이브러리 설치 중…');
+    const mp = py.pyimport('micropip');
+    await mp.install(new URL(EZDXF, location.href).href);
+    step(70, '도면 프로그램 파일 불러오는 중…');
+    py.FS.mkdirTree('/app/assets/vendor'); py.FS.mkdirTree('/app/assets/fonts');
+    const all = PYFILES.concat(ASSETS);
+    await Promise.all(all.map(async f => {
+      const r = await fetch(f); if (!r.ok) throw new Error(f + ' 를 불러오지 못했습니다');
+      py.FS.writeFile('/app/' + f, new Uint8Array(await r.arrayBuffer()));
+    }));
+    step(85, '도면 프로그램 시작 중… (글꼴 준비)');
+    await py.runPythonAsync("import sys, os\nos.chdir('/app')\nsys.path.insert(0, '/app')\nimport web_api");
+    api = py.pyimport('web_api');
+    UI = JSON.parse(api.ui());
+    step(100, '준비 완료');
+    build();
+    $('load').style.display = 'none';
+    $('go').disabled = false;
+  }catch(e){
+    $('lmsg').innerHTML = '<span style="color:#c62828">' + (e.message || e) + '</span><br>새로고침(F5)해 보세요.';
+    console.error(e);
+  }
+}
+
+function load(){ try{ return JSON.parse(localStorage.getItem(STORE)) || null; }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(vals)); }catch(e){} }
+
+function fmt(v){ return (typeof v === 'number') ? String(+v.toFixed(4)) : String(v); }
+
+function build(){
+  const saved = load();
+  vals = {};
+  for (const [k, v] of Object.entries(UI.defaults)) vals[k] = (saved && k in saved) ? saved[k] : v;
+  // 주요 선택
+  const pk = $('pick'); pk.innerHTML = '';
+  for (const [lab, key, opts] of PICKS){
+    const l = document.createElement('div'); l.className = 'lab'; l.textContent = lab; bindHover(l, key);
+    const seg = document.createElement('div'); seg.className = 'seg';
+    for (const [v, t] of opts){
+      const lb = document.createElement('label');
+      lb.innerHTML = `<input type="radio" name="${key}" value="${v}"><span>${t}</span>`;
+      const inp = lb.querySelector('input'); inp.checked = String(vals[key]) === v;
+      inp.onchange = () => { vals[key] = v; changed(); };
+      bindHover(lb, key); seg.appendChild(lb);
+    }
+    pk.append(l, seg);
+  }
+  // 탭
+  const tb = $('tabs'); tb.innerHTML = '';
+  UI.tabs.forEach(([title], i) => {
+    const b = document.createElement('button'); b.textContent = title;
+    b.onclick = () => { curTab = i; renderTab(); };
+    tb.appendChild(b);
+  });
+  renderTab();
+  refresh();
+}
+
+function renderTab(){
+  [...$('tabs').children].forEach((b, i) => b.classList.toggle('on', i === curTab));
+  const [title, fields] = UI.tabs[curTab];
+  const pn = $('panel'); pn.innerHTML = '';
+  const g = document.createElement('div'); g.className = 'fields';
+  for (const [k, lab, unit] of fields){
+    const l = document.createElement('label'); l.textContent = lab; l.htmlFor = 'f_' + k;
+    const inp = document.createElement('input'); inp.id = 'f_' + k; inp.inputMode = 'decimal'; inp.value = fmt(vals[k]);
+    inp.oninput = () => { const v = inp.value.trim(); const n = Number(v); inp.classList.toggle('err', v === '' || !isFinite(n));
+      if (v !== '' && isFinite(n)) { vals[k] = n; changed(); } };
+    const u = document.createElement('span'); u.className = 'u'; u.textContent = unit;
+    bindHover(l, k); bindHover(inp, k);
+    g.append(l, inp, u);
+  }
+  pn.appendChild(g);
+  if (title === '단열·밀폐'){
+    const ex = document.createElement('div'); ex.className = 'extra';
+    const lb = document.createElement('label');
+    lb.innerHTML = '<input type="checkbox"> 가스켓 사용';
+    const cb = lb.querySelector('input'); cb.checked = ['1','true','True','on'].includes(String(vals.gasket));
+    cb.onchange = () => { vals.gasket = cb.checked ? '1' : '0'; changed(); };
+    bindHover(lb, 'gasket'); ex.appendChild(lb); pn.appendChild(ex);
+  }
+  if (title === '열원'){
+    const ex = document.createElement('div'); ex.className = 'extra';
+    ex.innerHTML = '<b style="width:100%">면상필름을 붙일 면 (열원이 면상필름일 때)</b>';
+    const cur = String(vals.film_faces).split(/[ ,]+/).filter(Boolean);
+    for (const f of UI.faces){
+      const lb = document.createElement('label'); lb.innerHTML = `<input type="checkbox"> ${f}`;
+      const cb = lb.querySelector('input'); cb.checked = cur.includes(f);
+      cb.onchange = () => { const s = [...ex.querySelectorAll('input')].map((c, i) => c.checked ? UI.faces[i] : null).filter(Boolean); vals.film_faces = s.join(','); changed(); };
+      bindHover(lb, 'film_faces'); ex.appendChild(lb);
+    }
+    pn.appendChild(ex);
+  }
+}
+
+function bindHover(el, key){
+  el.addEventListener('mouseenter', () => show(key));
+  el.addEventListener('focusin', () => show(key));
+  el.addEventListener('mouseleave', () => show(null));
+  el.addEventListener('click', () => show(key));
+}
+function show(k){ hover = k; $('desc').textContent = k ? (UI.descr[k] || '') : ''; draw(); }
+
+function changed(){ save(); clearTimeout(timer); timer = setTimeout(refresh, 120); }
+function refresh(){
+  if (!api) return;
+  try { last = JSON.parse(api.preview(JSON.stringify(vals))); } catch(e){ last = {errors: [String(e)]}; }
+  draw(); checkText();
+}
+
+function checkText(){
+  const c = $('chk');
+  if (!last) return;
+  if (last.errors && last.errors.length){ c.innerHTML = last.errors.map(e => `<div class="bad">✕ ${e}</div>`).join(''); return; }
+  const bad = (last.checks || []).filter(x => !x[3]);
+  c.innerHTML = bad.length ? bad.map(x => `<div class="bad">✕ ${x[0]}: ${x[1].toFixed(0)} mm (기준 ≥ ${x[2]})</div>`).join('')
+                           : '<div class="ok">○ 여유 검사: 모두 통과</div>';
+}
+
+// ---------------------------------------------------------------- 미리보기
+function draw(){
+  const cv = $('cv'), g = cv.getContext('2d');
+  const Wc = cv.width, Hc = cv.height;
+  g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,Wc,Hc); g.fillStyle = '#fbf8f2'; g.fillRect(0,0,Wc,Hc);
+  if (!last || !last.parts){ g.fillStyle = '#c62828'; g.font = '24px sans-serif'; g.fillText('입력값을 확인하세요', 40, 60); return; }
+  const P = last.P, d = last.d, parts = last.parts;
+  const W = P.W, H = P.H, D = P.D;
+  const s = Math.min(680 / W, 720 / H, 360 / D);
+  const ox = 60, oy = 790, sx0 = 800;
+  const fx = x => ox + x * s, fz = z => oy - z * s, gy = y => sx0 + y * s;
+  const isHL = q => hover && (q.k.includes(hover) || (hover === 'heat' && (q.m === 'film' || q.m === 'ptc')));
+  g.lineJoin = 'round';
+  function rect(x0, y0, x1, y1, fill, stroke, lw, dash){
+    g.beginPath(); g.rect(Math.min(x0,x1), Math.min(y0,y1), Math.abs(x1-x0), Math.abs(y1-y0));
+    if (fill){ g.fillStyle = fill; g.fill(); }
+    if (stroke){ g.setLineDash(dash || []); g.strokeStyle = stroke; g.lineWidth = lw || 1.5; g.stroke(); g.setLineDash([]); }
+  }
+  function line(x0, y0, x1, y1, c, w, dash){ g.beginPath(); g.moveTo(x0,y0); g.lineTo(x1,y1); g.setLineDash(dash||[]); g.strokeStyle=c; g.lineWidth=w; g.stroke(); g.setLineDash([]); }
+  // 정면(문 떼어냄)
+  const front = parts.filter(q => !q.t.includes('door') && !q.t.includes('lowfront')).sort((a,b) => b.b[2] - a.b[2]);
+  for (const q of front){
+    const [x0,x1,y0,y1,z0,z1] = q.b, hl = isHL(q), col = MATC[q.m] || '#ccc';
+    if (q.m === 'film'){
+      const c = hl ? HL : '#e03030';
+      if (x1 - x0 < 3) line(fx(x0), fz(z0), fx(x0), fz(z1), c, hl?5:3);
+      else if (z1 - z0 < 3) line(fx(x0), fz(z0), fx(x1), fz(z0), c, hl?5:3);
+      else rect(fx(x0), fz(z1), fx(x1), fz(z0), null, c, hl?3:1.5, [8,6]);
+      continue;
+    }
+    if (q.shape === 'cyl' || q.shape === 'disc'){
+      g.beginPath(); g.arc(fx((x0+x1)/2), fz((z0+z1)/2), Math.max((x1-x0)/2*s, 2.5), 0, 7);
+      g.fillStyle = hl ? HL : (q.shape === 'disc' ? '#444' : col); g.fill(); g.strokeStyle = '#333'; g.lineWidth = 1; g.stroke(); continue;
+    }
+    if (q.t.includes('front')) rect(fx(x0), fz(z1), fx(x1), fz(z0), null, hl ? HL : '#6b5535', hl?3:1.5, [6,4]);
+    else if (!q.t.includes('back')) rect(fx(x0), fz(z1), fx(x1), fz(z0), hl ? HL : col, hl ? HL : '#6b5535', hl?3:1.2);
+    for (const [kind, xc, zc, w, h] of q.holes){
+      const hk = hover === 'ctl_side' || (hover && (kind === 'thermo' ? /^(thermo|bezel|ctl_depth)/.test(hover) : hover.startsWith('recp')));
+      rect(fx(xc-w/2), fz(zc+h/2), fx(xc+w/2), fz(zc-h/2), kind === 'recp' ? null : (hk ? '#ffd0d0' : '#cfc6b8'), hk ? HL : '#333', hk?3:1.2, kind === 'recp' ? [4,4] : null);
+    }
+  }
+  // 부린활
+  const bh = BOW_KEYS.has(hover);
+  for (const [st, col, dash] of [['open','#1f5fbf',[10,6]],['closed','#2e8b57',[4,4]]]){
+    const B = last.bows[st];
+    for (const [xs, zs, w] of [[B.xo, B.zo, 3],[B.xi, B.zi, 1.5]]){
+      g.beginPath(); xs.forEach((x, i) => i ? g.lineTo(fx(x), fz(zs[i])) : g.moveTo(fx(x), fz(zs[i])));
+      g.setLineDash(dash); g.strokeStyle = bh ? HL : col; g.lineWidth = w + (bh?1.5:0); g.stroke(); g.setLineDash([]);
+    }
+  }
+  dim(fx(0), fz(H) - 22, fx(W), fz(H) - 22, String(W), hover === 'W');
+  dim(fx(0) - 26, fz(0), fx(0) - 26, fz(H), String(H), hover === 'H', true);
+  // 측단면
+  const xc = d.xcut;
+  for (const q of parts){
+    const [x0,x1,y0,y1,z0,z1] = q.b; if (!(x0 <= xc && xc <= x1)) continue;
+    const hl = isHL(q), col = MATC[q.m] || '#ccc';
+    if (q.prof){ g.beginPath(); q.prof.forEach(([y,z], i) => i ? g.lineTo(gy(y), fz(z)) : g.moveTo(gy(y), fz(z))); g.closePath();
+      g.fillStyle = hl ? HL : col; g.fill(); g.strokeStyle = '#333'; g.lineWidth = 1; g.stroke(); continue; }
+    if (q.m === 'film'){ const c = hl ? HL : '#e03030';
+      if (y1 - y0 < 3) line(gy(y0), fz(z0), gy(y0), fz(z1), c, 3); else line(gy(y0), fz(z0), gy(y1), fz(z0), c, 3); continue; }
+    rect(gy(y0), fz(z1), gy(y1), fz(z0), hl ? HL : col, hl ? HL : '#6b5535', hl?3:1.2);
+  }
+  const Bo = last.bows.open;
+  for (let k = 0; k < P.n_bows; k++){
+    const yc = d.cy1 - P.rack_back - P.bow_pitch * (k + 0.5), w = P.bow_pitch * 0.8;
+    rect(gy(yc - w/2), fz(Bo.zt), gy(yc + w/2), fz(Bo.zmin), null, bh ? HL : '#1f5fbf', bh?3:1.5, [8,4]);
+  }
+  if (P.door_type === 'bandaji'){
+    const c = (hover === 'door_type' || hover === 'door_h') ? HL : '#b5651d', st = 60;   // 열린 문판 앞부분만
+    rect(gy(-st), fz(d.dz0 + P.t_door), gy(0), fz(d.dz0), null, c, 2, [8,5]);
+    g.fillStyle = c; g.font = '16px "Malgun Gothic",sans-serif'; g.textAlign = 'right';
+    g.fillText('문판 90° 열림 →', gy(-st) - 4, fz(d.dz0) - 4); g.textAlign = 'left';
+  }
+  dim(gy(0), fz(H) - 22, gy(D), fz(H) - 22, String(D), hover === 'D');
+  g.fillStyle = '#4a3a28'; g.font = 'bold 22px "Malgun Gothic",sans-serif';
+  g.fillText('정면 (문 떼어냄)', fx(0), 34); g.fillText('측단면', gy(0), 34);
+
+  function dim(x1, y1, x2, y2, txt, hl, vert){
+    const c = hl ? HL : '#555'; line(x1, y1, x2, y2, c, hl?3:1.5);
+    for (const [a, b, sgn] of [[x1, y1, 1],[x2, y2, -1]]){
+      g.beginPath();
+      if (vert){ g.moveTo(a, b); g.lineTo(a - 6, b + sgn * -14); g.lineTo(a + 6, b + sgn * -14); }
+      else { g.moveTo(a, b); g.lineTo(a + sgn * 14, b - 6); g.lineTo(a + sgn * 14, b + 6); }
+      g.fillStyle = c; g.fill();
+    }
+    g.fillStyle = c; g.font = (hl ? 'bold ' : '') + '20px "Malgun Gothic",sans-serif'; g.textAlign = 'center';
+    if (vert){ g.save(); g.translate(x1 - 12, (y1 + y2) / 2); g.rotate(-Math.PI / 2); g.fillText(txt, 0, 0); g.restore(); }
+    else g.fillText(txt, (x1 + x2) / 2, y1 - 10);
+    g.textAlign = 'left';
+  }
+}
+
+// ---------------------------------------------------------------- 생성·내려받기
+const KIND = [['.pdf','도면 PDF (A3 5장)'],['_parts.dxf','부재 DXF (1:1)'],['_cutlist.csv','재단표 CSV'],
+              ['_3d_viewer.html','3D 뷰어 (브라우저)'],['_3d_sketchup.dae','3D SketchUp (DAE)'],['_3d.obj','3D OBJ'],['_3d.mtl','3D OBJ 재질(MTL)']];
+const MIME = {pdf:'application/pdf', dxf:'application/dxf', csv:'text/csv', html:'text/html', dae:'model/vnd.collada+xml', obj:'text/plain', mtl:'text/plain'};
+let urls = [];
+$('go').onclick = async () => {
+  if (!api) return;
+  $('busy').style.display = 'flex'; $('busymsg').textContent = '도면을 만드는 중… (10~30초)'; $('go').disabled = true;
+  await new Promise(r => setTimeout(r, 50));
+  try{
+    const r = JSON.parse(api.generate(JSON.stringify(vals), $('want3d').checked));
+    if (r.errors && r.errors.length){ alert('입력값을 확인하세요.\n\n' + r.errors.join('\n')); return; }
+    urls.forEach(u => URL.revokeObjectURL(u)); urls = [];
+    const ul = $('flist'); ul.innerHTML = '';
+    for (const path of r.files){
+      const name = path.split('/').pop(), ext = name.split('.').pop();
+      const data = py.FS.readFile(path);
+      const url = URL.createObjectURL(new Blob([data], {type: MIME[ext] || 'application/octet-stream'})); urls.push(url);
+      const kind = (KIND.find(([suf]) => name.endsWith(suf)) || ['', ''])[1];
+      const li = document.createElement('li');
+      li.innerHTML = `<span><a href="${url}" download="${name}">${name}</a><br><span class="k">${kind} · ${(data.length/1024).toFixed(0)} KB</span></span>`;
+      if (ext === 'html' || ext === 'pdf'){
+        const o = document.createElement('button'); o.className = 'sub'; o.textContent = '열기';
+        o.onclick = () => window.open(url, '_blank'); li.appendChild(o);
+      }
+      ul.appendChild(li);
+    }
+    $('files').style.display = 'block';
+    $('status').textContent = `완료: ${r.files.length}개 파일` + (r.bad.length ? ` · 여유 부족 ${r.bad.length}건(도면 1쪽 참고)` : '');
+    $('files').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  }catch(e){
+    alert('도면 생성 중 오류가 났습니다.\n\n' + e); console.error(e);
+  }finally{
+    $('busy').style.display = 'none'; $('go').disabled = false;
+  }
+};
+$('reset').onclick = () => { try{ localStorage.removeItem(STORE); }catch(e){} build(); };
+boot();
+</script>
+</body>
+</html>

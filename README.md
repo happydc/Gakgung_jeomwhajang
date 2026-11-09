@@ -13,6 +13,15 @@
   - DAE: SketchUp → 파일 → 가져오기. 부재별로 나뉘고 단위는 mm
 - **3D 뷰어(HTML)**: 인터넷 없이 브라우저에서 열림. 문 열기 각도, 단면 보기, 레이어 켜고 끄기, 부린활(벌어짐·오므라짐) 표시
 
+## 웹 버전 (설치 없이 바로 사용)
+
+**https://happydc.github.io/Gakgung_jeomwhajang/**
+
+- 브라우저(Chrome, Edge 등)에서 열면 바로 씁니다. 설치가 필요 없고, 스마트 앱 컨트롤이나 Windows 7 문제도 없습니다.
+- 처음 열 때 계산 프로그램을 내려받느라 10~30초 걸립니다. 다음부터는 빨라집니다.
+- 기능과 도면은 exe와 같습니다. 같은 파이썬 코드를 브라우저 안에서 실행하기 때문입니다([Pyodide](https://pyodide.org)).
+- 만든 파일(PDF·DXF·CSV·3D)은 화면의 파일 이름을 눌러 내려받습니다. 입력값은 그 브라우저에만 저장됩니다.
+
 ## 내려받기
 
 [Releases](../../releases)에서 `GakgungJeomhwajang.exe`를 받아 실행하면 됩니다. 설치는 필요 없습니다.
@@ -100,6 +109,9 @@ py jeomhwajang_3d.py      # 3D 모델·뷰어 생성
 - `jeomhwajang_core.py`: 부재 계산, 여유 검사, PDF·DXF·CSV 생성
 - `jeomhwajang_3d.py`: 3D 메시, OBJ·DAE·3D 뷰어 생성
 - `assets/vendor/`: three.js r147 (MIT 라이선스). 3D 뷰어에 넣어 오프라인으로 열림
+- `web/`: 웹 버전 (`index.html` 화면, `web_api.py` 파이썬 연결부, `build_site.sh` 사이트 조립)
+- `assets/fonts/`: 나눔고딕(OFL) — 웹 버전과 한글 글꼴이 없는 PC에서 도면 글꼴로 사용
+- `.github/workflows/pages.yml`: main에 올리면 웹 버전을 GitHub Pages로 자동 배포
 - `tools/make_icon.py`: 아이콘 생성
 - `requirements-win7.txt`: Windows 7용 빌드(Python 3.8)에 쓰는 패키지 버전
 - `.github/workflows/build-windows.yml`: main 브랜치에 올리면 exe(일반용 + Windows 7용 64·32비트)를 자동으로 빌드하고, `v*` 태그를 달면 Release에 올립니다.

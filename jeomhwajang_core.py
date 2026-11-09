@@ -32,7 +32,18 @@ def _setup_font():
             fm.fontManager.addfont(p)
             plt.rcParams["font.family"] = fm.FontProperties(fname=p).get_name()
             return p
-    return None
+    # 함께 넣은 나눔고딕(OFL) — 웹(브라우저) 버전이나 한글 글꼴이 없는 PC
+    import sys as _sys
+    base = getattr(_sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    found = None
+    for nm in ("NanumGothic-Regular.ttf", "NanumGothic-Bold.ttf"):
+        p = os.path.join(base, "assets", "fonts", nm)
+        if os.path.exists(p):
+            fm.fontManager.addfont(p)
+            found = found or p
+    if found:   # 나눔고딕에 없는 기호(①·℃·−)는 DejaVu Sans로 대신 그림
+        plt.rcParams["font.family"] = [fm.FontProperties(fname=found).get_name(), "DejaVu Sans"]
+    return found
 
 
 _setup_font()
@@ -1056,7 +1067,7 @@ def sheet_seal(pdf, parts, d, no, total):
     sd = 1
     b1 = view_axes(fig, 30, 165, (-10, span), (-span, 10), sd)
     draw_plan(b1, parts, d, zc)
-    ax0.text(30, 165 + (span + 10) / sd + 6, "ⓐ 옆판 앞 모서리 평단면", fontsize=8, weight="bold")
+    ax0.text(30, 165 + (span + 10) / sd + 6, "상세 1 · 옆판 앞 모서리 평단면", fontsize=8, weight="bold")
     label(b1, (t / 2, -span + 15), "옆판", (-8, -6))
     label(b1, (t + 40, -td / 2), "문 겉판", (6, 8))
     label(b1, (t + p["t_ins"] / 2, -td - 30), "단열재", (10, -4))
@@ -1074,7 +1085,7 @@ def sheet_seal(pdf, parts, d, no, total):
         b2.add_patch(Circle((0, dz0), 3, fill=False, ec="#b5651d", lw=0.8, zorder=8))
         label(b2, (0, dz0), "경첩 축(앞면 선)", (-8, -10))
         label(b2, (-30, dz0 + td), "90° 열린 문판", (-4, 10))
-        ax0.text(140, 165 + (span + 10) / sd + 6, "ⓑ 반닫이 경첩부 측단면", fontsize=8, weight="bold")
+        ax0.text(140, 165 + (span + 10) / sd + 6, "상세 2 · 반닫이 경첩부 측단면", fontsize=8, weight="bold")
     else:
         b2 = view_axes(fig, 140, 165, (xm - 55, xm + 55), (-span, 10), sd)
         draw_plan(b2, parts, d, zc)
@@ -1084,18 +1095,18 @@ def sheet_seal(pdf, parts, d, no, total):
             label(b2, (xm + p["rebate"] / 2, -td / 2), "가스켓", (14, 6))
         label(b2, (xm - 30, -td / 4), "왼문", (-6, 8))
         label(b2, (xm + 30, -td / 4), "오른문", (4, 8))
-        ax0.text(140, 165 + (span + 10) / sd + 6, "ⓑ 양문 맞닿는 곳 평단면", fontsize=8, weight="bold")
+        ax0.text(140, 165 + (span + 10) / sd + 6, "상세 2 · 양문 맞닿는 곳 평단면", fontsize=8, weight="bold")
     b3 = view_axes(fig, 30, 45, (-10, span), (p["H"] - span, p["H"] + 10), sd)
     draw_side(b3, parts, d, xm - 100)
     label(b3, (span - 20, p["H"] - t / 2), "천판", (6, 4))
     label(b3, (td / 2, p["H"] - t - 30), "문 겉판", (12, -6))
-    ax0.text(30, 45 + (span + 20) / sd + 4, "ⓒ 위 문받이 측단면", fontsize=8, weight="bold")
+    ax0.text(30, 45 + (span + 20) / sd + 4, "상세 3 · 위 문받이 측단면", fontsize=8, weight="bold")
     zr = d["door_z"][0]
     b4 = view_axes(fig, 140, 45, (-10, span), (zr - 50, zr + span - 40), sd)
     draw_side(b4, parts, d, xm - 100)
     label(b4, (p["t"] / 2, zr - 40), "아래 앞판", (14, -4))
     label(b4, (d["yfront"] + p["frame_d"] / 2, zr), "문틀 띠", (16, 4))
-    ax0.text(140, 45 + (span + 20) / sd + 4, "ⓓ 문 아래 문받이 측단면", fontsize=8, weight="bold")
+    ax0.text(140, 45 + (span + 20) / sd + 4, "상세 4 · 문 아래 문받이 측단면", fontsize=8, weight="bold")
     x = 275
     ax0.text(x, 270, "밀폐·단열 구조", fontsize=9, weight="bold")
     gtxt = (f"D형 가스켓 {p['gasket_w']:g}×{p['gasket_h']:g} (눌림 {d['gk']:g})" if gasket_on() else "가스켓 없음(맞닿음)")
