@@ -20,6 +20,20 @@
 
 > 처음 실행할 때 Windows SmartScreen 경고가 뜨면 **추가 정보 → 실행**을 누르세요(서명되지 않은 프로그램이라 뜨는 경고입니다).
 
+### Windows 7에서 쓰기
+
+Windows 7에서는 Python 3.9 이상으로 만든 exe가 dll 오류(`api-ms-win-core-path-l1-1-0.dll` 등)로 실행되지 않습니다. 그래서 Python 3.8로 따로 빌드한 Windows 7 전용 exe를 함께 올립니다.
+
+| 파일 | 대상 |
+|---|---|
+| `GakgungJeomhwajang.exe` | Windows 8.1 / 10 / 11 |
+| `GakgungJeomhwajang_win7_x64.exe` | Windows 7 64비트 |
+| `GakgungJeomhwajang_win7_x86.exe` | Windows 7 32비트 |
+
+- 64비트인지 32비트인지는 **시작 → 컴퓨터(오른쪽 클릭) → 속성 → 시스템 종류**에서 확인합니다.
+- 그래도 `api-ms-win-crt-runtime-l1-1-0.dll` 오류가 나면 Windows 7 **서비스 팩 1(SP1)**과 **유니버설 C 런타임 업데이트(KB2999226)**를 설치하세요.
+- 3D 뷰어(HTML)는 Internet Explorer에서는 열리지 않습니다. Windows 7에서는 Chrome 109 또는 Firefox ESR 115로 여세요.
+
 ## 구조
 
 - **외관**: 귀장석·장석 없이 원목 그대로. 사개 맞춤이 보이고, 원목 손잡이를 씀
@@ -87,7 +101,8 @@ py jeomhwajang_3d.py      # 3D 모델·뷰어 생성
 - `jeomhwajang_3d.py`: 3D 메시, OBJ·DAE·3D 뷰어 생성
 - `assets/vendor/`: three.js r147 (MIT 라이선스). 3D 뷰어에 넣어 오프라인으로 열림
 - `tools/make_icon.py`: 아이콘 생성
-- `.github/workflows/build-windows.yml`: main 브랜치에 올리면 exe를 자동으로 빌드하고, `v*` 태그를 달면 Release에 올립니다.
+- `requirements-win7.txt`: Windows 7용 빌드(Python 3.8)에 쓰는 패키지 버전
+- `.github/workflows/build-windows.yml`: main 브랜치에 올리면 exe(일반용 + Windows 7용 64·32비트)를 자동으로 빌드하고, `v*` 태그를 달면 Release에 올립니다.
 
 ---
 
