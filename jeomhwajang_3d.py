@@ -264,7 +264,8 @@ def write_dae(path, meshes):
                  f'</mesh></geometry>')
     o.append('</library_geometries><library_visual_scenes><visual_scene id="scene">')
     for i, m in enumerate(meshes):
-        o.append(f'<node id="n{i}" name="{escape(f"{i:02d} {m["name"]}")}"><instance_geometry url="#g{i}"><bind_material><technique_common>'
+        nm_ = escape("%02d %s" % (i, m["name"]))
+        o.append(f'<node id="n{i}" name="{nm_}"><instance_geometry url="#g{i}"><bind_material><technique_common>'
                  f'<instance_material symbol="mat" target="#m_{m["mat"]}"/></technique_common></bind_material></instance_geometry></node>')
     o.append('</visual_scene></library_visual_scenes><scene><instance_visual_scene url="#scene"/></scene></COLLADA>')
     with open(path, "w", encoding="utf-8") as fp:
