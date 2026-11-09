@@ -1,4 +1,4 @@
-# Windows 7용 빌드(Python 3.8) — 3.8을 지원하는 마지막 버전들
+# Windows 7 build (Python 3.8): last versions supporting Python 3.8
 numpy<1.25
 matplotlib<3.8
 ezdxf<1.2
