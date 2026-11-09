@@ -52,7 +52,7 @@ plt.rcParams["axes.unicode_minus"] = False
 # ---------------------------------------------------------------- 기본값
 PARAM = dict(
     # 본체
-    W=920.0, H=800.0, D=320.0,      # 외형 가로·높이·깊이
+    W=1000.0, H=800.0, D=320.0,      # 외형 가로·높이·깊이
     t=18.0,                         # 겉판 두께(옆판·천판·지판·뒷판·아래 앞판)
     foot_h=30.0, foot_w=60.0,       # 발 높이·크기(4개)
     pin_pitch=40.0,                 # 사개 손 간격(목표)
@@ -68,7 +68,7 @@ PARAM = dict(
     rebate=12.0,                    # 양문 맞닿는 턱 너비
     # 문
     door_type="double",             # double 양문 여닫이 | bandaji 반닫이(문판이 앞으로 젖혀 열림)
-    door_h=400.0,                   # 문 높이(천판 아래에서 아래로)
+    door_h=350.0,                   # 문 높이(천판 아래에서 아래로)
     bj_cleat=45.0,                  # 반닫이 문판 양끝 마구리 폭(0이면 통판)
     bj_hinges=3,                    # 반닫이 경첩 수(문판 아래 끝)
     bj_stays=0,                     # 반닫이 지지대 수(0이면 바닥에 닿을 때까지 열림, 1 이상이면 90°에서 멈춤)
@@ -108,7 +108,7 @@ PARAM = dict(
     r3_arm=40.0, r3_cap_w=120.0, r3_cap_h=30.0,
     # 활
     n_bows=4, bow_pitch=50.0,
-    bow_open_span=800.0, bow_open_h=450.0,
+    bow_open_span=880.0, bow_open_h=300.0,
     bow_ring_w=560.0, bow_ring_h=500.0,
     bow_limb=25.0, clear=20.0,
 )
